@@ -7,5 +7,12 @@ const SUPABASE_PUBLISHABLE_KEY =
 export const supabase =
   window.supabase.createClient(
     SUPABASE_URL,
-    SUPABASE_PUBLISHABLE_KEY
+    SUPABASE_PUBLISHABLE_KEY,
+    {
+      auth: {
+        experimental: {
+          passkey: true,
+        },
+      },
+    }
   );
