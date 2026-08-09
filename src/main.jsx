@@ -23,214 +23,50 @@ import {
   INITIAL_ARRANGEMENTS,
 } from './data';
 
-/* ============================================================
-   STORAGE SETTINGS
-
-   IMPORTANT:
-   This version uses completely new storage keys.
-
-   It also has a data version.
-
-   If the version changes, the app resets ONLY its own saved
-   dashboard data and reloads the clean information from data.js.
-
-   This means none of the corrupted storage from our previous
-   attempts should be loaded.
-============================================================ */
-
-const DATA_VERSION = 'TCG-CLEAN-2026-08-09-V1';
-
-const STORAGE_KEYS = {
-  version: 'tcg_dashboard_data_version_v1',
-  products: 'tcg_dashboard_products_v1',
-  flowers: 'tcg_dashboard_flowers_v1',
-  arrangements: 'tcg_dashboard_arrangements_v1',
-};
+import { supabase } from './supabase';
 
 /* ============================================================
-   LOAD SAVED ARRAY
-============================================================ */
+   THE CROCHET GARDEN DASHBOARD
 
-function loadSavedArray(key, fallback) {
-  try {
-    const saved = localStorage.getItem(key);
+   DATA STORAGE:
+   Supabase is now the main database.
 
-    if (!saved) {
-      return fallback;
-    }
+   localStorage is NOT used for:
+   - bouquets
+   - flowers
+   - arrangements
 
-    const parsed = JSON.parse(saved);
-
-    if (!Array.isArray(parsed)) {
-      return fallback;
-    }
-
-    return parsed;
-  } catch (error) {
-    console.error(`Could not load ${key}:`, error);
-    return fallback;
-  }
-}
-
-/* ============================================================
-   APP
+   This means changes can be shared between devices.
 ============================================================ */
 
 function App() {
-  /* ----------------------------------------------------------
-     STORAGE VERSION CHECK
-
-     This runs INSIDE the actual preview app.
-
-     Therefore we do not need to rely on DevTools
-     localStorage.clear().
-  ---------------------------------------------------------- */
-
-  try {
-    const existingVersion = localStorage.getItem(
-      STORAGE_KEYS.version
-    );
-
-    if (existingVersion !== DATA_VERSION) {
-      localStorage.removeItem(STORAGE_KEYS.products);
-      localStorage.removeItem(STORAGE_KEYS.flowers);
-      localStorage.removeItem(STORAGE_KEYS.arrangements);
-
-      localStorage.setItem(
-        STORAGE_KEYS.version,
-        DATA_VERSION
-      );
-    }
-  } catch (error) {
-    console.error(
-      'Could not initialise dashboard storage:',
-      error
-    );
-  }
-
   /* ==========================================================
-     BASIC UI STATE
+     BASIC UI
   ========================================================== */
 
   const [darkMode, setDarkMode] = useState(false);
-
-  const [activeTab, setActiveTab] =
-    useState('all');
-
-  const [searchQuery, setSearchQuery] =
-    useState('');
-
-  const [selectedProduct, setSelectedProduct] =
-    useState(null);
-
-  const [sidebarOpen, setSidebarOpen] =
-    useState(true);
-
-  const [zoomedImage, setZoomedImage] =
-    useState(null);
+  const [activeTab, setActiveTab] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [zoomedImage, setZoomedImage] = useState(null);
 
   /* ==========================================================
-     MAIN APP DATA
+     DATABASE STATE
   ========================================================== */
 
-  const [products, setProducts] = useState(() =>
-    loadSavedArray(
-      STORAGE_KEYS.products,
-      INITIAL_PRODUCTS
-    )
-  );
+  const [products, setProducts] = useState([]);
+  const [masterFlowers, setMasterFlowers] = useState([]);
+  const [arrangements, setArrangements] = useState([]);
 
-  const [masterFlowers, setMasterFlowers] =
-    useState(() =>
-      loadSavedArray(
-        STORAGE_KEYS.flowers,
-        INITIAL_FLOWERS
-      )
-    );
-
-  const [arrangements, setArrangements] =
-    useState(() =>
-      loadSavedArray(
-        STORAGE_KEYS.arrangements,
-        INITIAL_ARRANGEMENTS
-      )
-    );
-
-  /* ==========================================================
-     AUTO SAVE
-  ========================================================== */
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(
-        STORAGE_KEYS.products,
-        JSON.stringify(products)
-      );
-    } catch (error) {
-      console.error(
-        'Could not save products:',
-        error
-      );
-    }
-  }, [products]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(
-        STORAGE_KEYS.flowers,
-        JSON.stringify(masterFlowers)
-      );
-    } catch (error) {
-      console.error(
-        'Could not save flowers:',
-        error
-      );
-    }
-  }, [masterFlowers]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(
-        STORAGE_KEYS.arrangements,
-        JSON.stringify(arrangements)
-      );
-    } catch (error) {
-      console.error(
-        'Could not save arrangements:',
-        error
-      );
-    }
-  }, [arrangements]);
-
-  /* ==========================================================
-     KEEP SELECTED PRODUCT UPDATED
-  ========================================================== */
-
-  useEffect(() => {
-    if (!selectedProduct) {
-      return;
-    }
-
-    const latestProduct = products.find(
-      product =>
-        product.id === selectedProduct.id
-    );
-
-    if (latestProduct) {
-      setSelectedProduct(latestProduct);
-    } else {
-      setSelectedProduct(null);
-    }
-  }, [products]);
+  const [loading, setLoading] = useState(true);
+  const [databaseError, setDatabaseError] = useState('');
 
   /* ==========================================================
      MODALS
   ========================================================== */
 
-  const [
-    isAddingModal,
-    setIsAddingModal,
-  ] = useState(false);
+  const [isAddingModal, setIsAddingModal] = useState(false);
 
   const [
     isAddingFlowerModal,
@@ -243,7 +79,7 @@ function App() {
   ] = useState(false);
 
   /* ==========================================================
-     FLOWER PICKER - PRODUCT DETAIL
+     EXISTING BOUQUET FLOWER PICKER
   ========================================================== */
 
   const [
@@ -269,7 +105,7 @@ function App() {
   const pickerRef = useRef(null);
 
   /* ==========================================================
-     FLOWER PICKER - ADD BOUQUET
+     NEW BOUQUET FLOWER PICKER
   ========================================================== */
 
   const [
@@ -298,6 +134,233 @@ function App() {
   ] = useState([]);
 
   const modalPickerRef = useRef(null);
+
+  /* ==========================================================
+     NEW PRODUCT FORM
+  ========================================================== */
+
+  const [newName, setNewName] = useState('');
+
+  const [
+    newCategory,
+    setNewCategory,
+  ] = useState('ready-bouquets');
+
+  const [newPrice, setNewPrice] = useState('');
+  const [newImage, setNewImage] = useState('');
+
+  /* ==========================================================
+     NEW FLOWER FORM
+  ========================================================== */
+
+  const [
+    newFlowerDbName,
+    setNewFlowerDbName,
+  ] = useState('');
+
+  const [
+    newFlowerDbImage,
+    setNewFlowerDbImage,
+  ] = useState('');
+
+  /* ==========================================================
+     NEW ARRANGEMENT FORM
+  ========================================================== */
+
+  const [
+    newArrangementName,
+    setNewArrangementName,
+  ] = useState('');
+
+  const [
+    newArrangementPrice,
+    setNewArrangementPrice,
+  ] = useState('');
+
+  const [
+    newArrangementImage,
+    setNewArrangementImage,
+  ] = useState('');
+
+  /* ==========================================================
+     LOAD DATA FROM SUPABASE
+
+     If one of the tables is completely empty, the app seeds
+     that table using the existing clean data from data.js.
+
+     This means you do NOT have to manually type all the
+     existing bouquets and flowers into Supabase.
+  ========================================================== */
+
+  useEffect(() => {
+    loadDatabase();
+  }, []);
+
+  async function loadDatabase() {
+    setLoading(true);
+    setDatabaseError('');
+
+    try {
+      /* ------------------------------------------------------
+         PRODUCTS
+      ------------------------------------------------------ */
+
+      const {
+        data: productData,
+        error: productError,
+      } = await supabase
+        .from('products')
+        .select('*');
+
+      if (productError) {
+        throw productError;
+      }
+
+      let loadedProducts = productData || [];
+
+      if (loadedProducts.length === 0) {
+        const {
+          error: seedProductsError,
+        } = await supabase
+          .from('products')
+          .upsert(
+            INITIAL_PRODUCTS,
+            {
+              onConflict: 'id',
+            }
+          );
+
+        if (seedProductsError) {
+          throw seedProductsError;
+        }
+
+        loadedProducts = INITIAL_PRODUCTS;
+      }
+
+      /* ------------------------------------------------------
+         FLOWERS
+      ------------------------------------------------------ */
+
+      const {
+        data: flowerData,
+        error: flowerError,
+      } = await supabase
+        .from('flowers')
+        .select('*');
+
+      if (flowerError) {
+        throw flowerError;
+      }
+
+      let loadedFlowers = flowerData || [];
+
+      if (loadedFlowers.length === 0) {
+        const {
+          error: seedFlowersError,
+        } = await supabase
+          .from('flowers')
+          .upsert(
+            INITIAL_FLOWERS,
+            {
+              onConflict: 'id',
+            }
+          );
+
+        if (seedFlowersError) {
+          throw seedFlowersError;
+        }
+
+        loadedFlowers = INITIAL_FLOWERS;
+      }
+
+      /* ------------------------------------------------------
+         ARRANGEMENTS
+      ------------------------------------------------------ */
+
+      const {
+        data: arrangementData,
+        error: arrangementError,
+      } = await supabase
+        .from('arrangements')
+        .select('*');
+
+      if (arrangementError) {
+        throw arrangementError;
+      }
+
+      let loadedArrangements =
+        arrangementData || [];
+
+      if (
+        loadedArrangements.length === 0
+      ) {
+        const {
+          error: seedArrangementsError,
+        } = await supabase
+          .from('arrangements')
+          .upsert(
+            INITIAL_ARRANGEMENTS,
+            {
+              onConflict: 'id',
+            }
+          );
+
+        if (seedArrangementsError) {
+          throw seedArrangementsError;
+        }
+
+        loadedArrangements =
+          INITIAL_ARRANGEMENTS;
+      }
+
+      /* ------------------------------------------------------
+         APPLY DATABASE DATA TO APP
+      ------------------------------------------------------ */
+
+      setProducts(loadedProducts);
+      setMasterFlowers(loadedFlowers);
+      setArrangements(
+        loadedArrangements
+      );
+    } catch (error) {
+      console.error(
+        'Supabase loading error:',
+        error
+      );
+
+      setDatabaseError(
+        error?.message ||
+          'Unable to connect to the database.'
+      );
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  /* ==========================================================
+     KEEP OPEN PRODUCT SYNCHRONISED
+  ========================================================== */
+
+  useEffect(() => {
+    if (!selectedProduct) {
+      return;
+    }
+
+    const latestProduct =
+      products.find(
+        product =>
+          product.id ===
+          selectedProduct.id
+      );
+
+    if (latestProduct) {
+      setSelectedProduct(
+        latestProduct
+      );
+    } else {
+      setSelectedProduct(null);
+    }
+  }, [products]);
 
   /* ==========================================================
      CLOSE PICKERS WHEN CLICKING OUTSIDE
@@ -338,82 +401,21 @@ function App() {
   }, []);
 
   /* ==========================================================
-     NEW PRODUCT FORM
-  ========================================================== */
+     IMAGE RESOLUTION
 
-  const [newName, setNewName] =
-    useState('');
+     No fuzzy matching.
 
-  const [
-    newCategory,
-    setNewCategory,
-  ] = useState('ready-bouquets');
-
-  const [newPrice, setNewPrice] =
-    useState('');
-
-  const [newImage, setNewImage] =
-    useState('');
-
-  /* ==========================================================
-     NEW FLOWER FORM
-  ========================================================== */
-
-  const [
-    newFlowerDbName,
-    setNewFlowerDbName,
-  ] = useState('');
-
-  const [
-    newFlowerDbImage,
-    setNewFlowerDbImage,
-  ] = useState('');
-
-  /* ==========================================================
-     NEW ARRANGEMENT FORM
-  ========================================================== */
-
-  const [
-    newArrangementName,
-    setNewArrangementName,
-  ] = useState('');
-
-  const [
-    newArrangementPrice,
-    setNewArrangementPrice,
-  ] = useState('');
-
-  const [
-    newArrangementImage,
-    setNewArrangementImage,
-  ] = useState('');
-
-  /* ==========================================================
-     FLOWER IMAGE RESOLUTION
-
-     THIS IS IMPORTANT.
-
-     1. First use the exact image already stored in the
-        bouquet recipe.
-
-     2. If that image is missing, look for an EXACT name match.
-
-     3. There is NO partial name matching.
-
-     Therefore:
-       Lily
-       Star Lily
-       Waterlily
-       Lily of the Valley
-
-     can NEVER be confused just because they contain "lily".
+     "Lily" cannot accidentally match:
+     - Star Lily
+     - Waterlily
+     - Lily of the Valley
+     etc.
   ========================================================== */
 
   function getFlowerImage(flower) {
     if (
-      flower &&
-      typeof flower.image === 'string' &&
-      flower.image.trim() !== ''
+      flower?.image &&
+      typeof flower.image === 'string'
     ) {
       return flower.image;
     }
@@ -433,23 +435,23 @@ function App() {
             .toLowerCase()
       );
 
-    if (exactMatch?.image) {
-      return exactMatch.image;
-    }
-
-    return '';
+    return exactMatch?.image || '';
   }
 
   /* ==========================================================
-     ADD PRODUCT
+     ADD PRODUCT TO SUPABASE
   ========================================================== */
 
-  function handleAddProduct(event) {
+  async function handleAddProduct(
+    event
+  ) {
     event.preventDefault();
 
     if (!newName || !newPrice) {
       return;
     }
+
+    setDatabaseError('');
 
     const newProduct = {
       id: `product-${Date.now()}`,
@@ -471,6 +473,22 @@ function App() {
       flowers: newModalFlowersList,
     };
 
+    const {
+      error,
+    } = await supabase
+      .from('products')
+      .insert(newProduct);
+
+    if (error) {
+      console.error(error);
+
+      setDatabaseError(
+        `Could not save bouquet: ${error.message}`
+      );
+
+      return;
+    }
+
     setProducts(previous => [
       newProduct,
       ...previous,
@@ -488,7 +506,7 @@ function App() {
   }
 
   /* ==========================================================
-     ADD FLOWER TO NEW PRODUCT
+     ADD FLOWER TO NEW BOUQUET FORM
   ========================================================== */
 
   function handleAddFlowerToModal(
@@ -539,10 +557,10 @@ function App() {
   }
 
   /* ==========================================================
-     ADD MASTER FLOWER
+     ADD MASTER FLOWER TO SUPABASE
   ========================================================== */
 
-  function handleAddMasterFlower(
+  async function handleAddMasterFlower(
     event
   ) {
     event.preventDefault();
@@ -550,6 +568,8 @@ function App() {
     if (!newFlowerDbName.trim()) {
       return;
     }
+
+    setDatabaseError('');
 
     const newFlower = {
       id: `flower-${Date.now()}`,
@@ -561,6 +581,22 @@ function App() {
         newFlowerDbImage.trim() ||
         'https://raw.githubusercontent.com/del-elatum/tcgdashboard/refs/heads/main/botanicalleaf.png',
     };
+
+    const {
+      error,
+    } = await supabase
+      .from('flowers')
+      .insert(newFlower);
+
+    if (error) {
+      console.error(error);
+
+      setDatabaseError(
+        `Could not save flower: ${error.message}`
+      );
+
+      return;
+    }
 
     setMasterFlowers(
       previous => [
@@ -576,10 +612,10 @@ function App() {
   }
 
   /* ==========================================================
-     ADD ARRANGEMENT
+     ADD ARRANGEMENT TO SUPABASE
   ========================================================== */
 
-  function handleAddArrangement(
+  async function handleAddArrangement(
     event
   ) {
     event.preventDefault();
@@ -590,6 +626,8 @@ function App() {
     ) {
       return;
     }
+
+    setDatabaseError('');
 
     const arrangementName =
       newArrangementName.trim();
@@ -611,6 +649,22 @@ function App() {
         `https://raw.githubusercontent.com/del-elatum/tcgdashboard/refs/heads/main/${arrangementName}.png`,
     };
 
+    const {
+      error,
+    } = await supabase
+      .from('arrangements')
+      .insert(newArrangement);
+
+    if (error) {
+      console.error(error);
+
+      setDatabaseError(
+        `Could not save arrangement: ${error.message}`
+      );
+
+      return;
+    }
+
     setArrangements(
       previous => [
         newArrangement,
@@ -628,20 +682,40 @@ function App() {
   }
 
   /* ==========================================================
-     DELETE FLOWER
+     DELETE MASTER FLOWER
   ========================================================== */
 
-  function handleDeleteMasterFlower(
+  async function handleDeleteMasterFlower(
     id,
     event
   ) {
     event.stopPropagation();
 
-    const confirmed = window.confirm(
-      'Are you sure you want to delete this flower from the database?'
-    );
+    const confirmed =
+      window.confirm(
+        'Are you sure you want to delete this flower from the database?'
+      );
 
     if (!confirmed) {
+      return;
+    }
+
+    setDatabaseError('');
+
+    const {
+      error,
+    } = await supabase
+      .from('flowers')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      console.error(error);
+
+      setDatabaseError(
+        `Could not delete flower: ${error.message}`
+      );
+
       return;
     }
 
@@ -658,17 +732,37 @@ function App() {
      DELETE ARRANGEMENT
   ========================================================== */
 
-  function handleDeleteArrangement(
+  async function handleDeleteArrangement(
     id,
     event
   ) {
     event.stopPropagation();
 
-    const confirmed = window.confirm(
-      'Are you sure you want to delete this arrangement?'
-    );
+    const confirmed =
+      window.confirm(
+        'Are you sure you want to delete this arrangement?'
+      );
 
     if (!confirmed) {
+      return;
+    }
+
+    setDatabaseError('');
+
+    const {
+      error,
+    } = await supabase
+      .from('arrangements')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      console.error(error);
+
+      setDatabaseError(
+        `Could not delete arrangement: ${error.message}`
+      );
+
       return;
     }
 
@@ -682,20 +776,40 @@ function App() {
   }
 
   /* ==========================================================
-     DELETE PRODUCT
+     DELETE BOUQUET
   ========================================================== */
 
-  function handleDeleteProduct(
+  async function handleDeleteProduct(
     id,
     event
   ) {
     event.stopPropagation();
 
-    const confirmed = window.confirm(
-      'Are you sure you want to delete this bouquet?'
-    );
+    const confirmed =
+      window.confirm(
+        'Are you sure you want to delete this bouquet?'
+      );
 
     if (!confirmed) {
+      return;
+    }
+
+    setDatabaseError('');
+
+    const {
+      error,
+    } = await supabase
+      .from('products')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      console.error(error);
+
+      setDatabaseError(
+        `Could not delete bouquet: ${error.message}`
+      );
+
       return;
     }
 
@@ -715,10 +829,12 @@ function App() {
   }
 
   /* ==========================================================
-     ADD FLOWER TO EXISTING PRODUCT
+     ADD FLOWER TO EXISTING BOUQUET
+
+     This updates the JSON flowers column in Supabase.
   ========================================================== */
 
-  function handleAddFlowerToProduct(
+  async function handleAddFlowerToProduct(
     event
   ) {
     event.preventDefault();
@@ -729,6 +845,8 @@ function App() {
     ) {
       return;
     }
+
+    setDatabaseError('');
 
     const flowerToAdd = {
       name:
@@ -744,15 +862,38 @@ function App() {
         selectedMasterFlower.image,
     };
 
+    const updatedFlowers = [
+      ...(selectedProduct.flowers ||
+        []),
+
+      flowerToAdd,
+    ];
+
+    const {
+      error,
+    } = await supabase
+      .from('products')
+      .update({
+        flowers: updatedFlowers,
+      })
+      .eq(
+        'id',
+        selectedProduct.id
+      );
+
+    if (error) {
+      console.error(error);
+
+      setDatabaseError(
+        `Could not update bouquet: ${error.message}`
+      );
+
+      return;
+    }
+
     const updatedProduct = {
       ...selectedProduct,
-
-      flowers: [
-        ...(selectedProduct.flowers ||
-          []),
-
-        flowerToAdd,
-      ],
+      flowers: updatedFlowers,
     };
 
     setProducts(
@@ -771,15 +912,17 @@ function App() {
   }
 
   /* ==========================================================
-     REMOVE FLOWER FROM PRODUCT
+     REMOVE FLOWER FROM EXISTING BOUQUET
   ========================================================== */
 
-  function handleRemoveFlower(
+  async function handleRemoveFlower(
     flowerIndex
   ) {
     if (!selectedProduct) {
       return;
     }
+
+    setDatabaseError('');
 
     const updatedFlowers =
       (
@@ -789,6 +932,28 @@ function App() {
         (_, index) =>
           index !== flowerIndex
       );
+
+    const {
+      error,
+    } = await supabase
+      .from('products')
+      .update({
+        flowers: updatedFlowers,
+      })
+      .eq(
+        'id',
+        selectedProduct.id
+      );
+
+    if (error) {
+      console.error(error);
+
+      setDatabaseError(
+        `Could not update bouquet: ${error.message}`
+      );
+
+      return;
+    }
 
     const updatedProduct = {
       ...selectedProduct,
@@ -807,7 +972,7 @@ function App() {
   }
 
   /* ==========================================================
-     SEARCH / FILTER
+     SEARCH
   ========================================================== */
 
   const normalizedSearch =
@@ -880,14 +1045,7 @@ function App() {
     );
 
   /* ==========================================================
-     SAFE IMAGE COMPONENT
-
-     We deliberately DO NOT replace a broken bouquet flower
-     image with Botanical Leaf.
-
-     If an image is missing, you will see "Image unavailable".
-
-     That way a broken record cannot masquerade as another flower.
+     SAFE FLOWER IMAGE
   ========================================================== */
 
   function FlowerImage({
@@ -923,7 +1081,29 @@ function App() {
   }
 
   /* ==========================================================
-     RENDER
+     LOADING SCREEN
+  ========================================================== */
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-14 h-14 rounded-full border-4 border-slate-200 border-t-slate-800 animate-spin mx-auto mb-5" />
+
+          <h2 className="font-bold text-lg text-slate-800">
+            The Crochet Garden
+          </h2>
+
+          <p className="text-sm text-slate-400 mt-1">
+            Loading catalogue...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  /* ==========================================================
+     MAIN UI
   ========================================================== */
 
   return (
@@ -1138,6 +1318,31 @@ function App() {
       ====================================================== */}
 
       <main className="flex-1 p-6 md:p-10 overflow-y-auto relative">
+        {/* DATABASE ERROR */}
+
+        {databaseError && (
+          <div className="mb-6 bg-red-50 border border-red-200 rounded-2xl px-5 py-4 flex items-start justify-between gap-4">
+            <div>
+              <p className="font-semibold text-red-700 text-sm">
+                Database error
+              </p>
+
+              <p className="text-red-600 text-xs mt-1">
+                {databaseError}
+              </p>
+            </div>
+
+            <button
+              onClick={() =>
+                setDatabaseError('')
+              }
+              className="text-red-500"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        )}
+
         {selectedProduct && (
           <button
             onClick={() =>
@@ -2458,10 +2663,6 @@ function App() {
     </div>
   );
 }
-
-/* ============================================================
-   RENDER APP
-============================================================ */
 
 ReactDOM.createRoot(
   document.getElementById('app')
