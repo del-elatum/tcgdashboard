@@ -2290,103 +2290,110 @@ function App() {
 
                         {/* IMAGE */}
 
-                        <div
-                          onClick={() =>
-                            flowerImage &&
-                            setZoomedImage(
-                              flowerImage
-                            )
-                          }
-                          className="w-28 h-28 md:w-32 md:h-32 rounded-2xl overflow-hidden bg-white shrink-0 shadow cursor-pointer"
-                        >
+                        <div className="flex items-center w-full pr-8">
 
-                          {flowerImage ? (
+  {/* IMAGE */}
 
-                            <img
-                              src={
-                                flowerImage
-                              }
-                              alt={
-                                flower.name
-                              }
-                              className="w-full h-full object-cover"
-                            />
+  <div
+    onClick={() =>
+      flowerImage &&
+      setZoomedImage(
+        flowerImage
+      )
+    }
+    className="
+      w-28
+      h-28
+      md:w-32
+      md:h-32
+      rounded-2xl
+      overflow-hidden
+      bg-white
+      shrink-0
+      shadow
+      cursor-pointer
+    "
+  >
 
-                          ) : (
+    {flowerImage ? (
 
-                            <div className="w-full h-full flex items-center justify-center text-xs text-slate-400">
-                              No image
-                            </div>
+      <img
+        src={flowerImage}
+        alt={flower.name}
+        className="w-full h-full object-cover"
+      />
 
-                          )}
+    ) : (
 
-                        </div>
+      <div className="w-full h-full flex items-center justify-center text-xs text-slate-400">
+        No image
+      </div>
 
+    )}
 
-                        {/* =========================================
-                            LARGE QUANTITY BADGE
-                        ========================================= */}
-
-                        <div
-                          className="
-                            -ml-5
-                            z-10
-                            w-16
-                            h-16
-                            rounded-full
-                            bg-slate-900
-                            text-white
-                            border-4
-                            border-slate-50
-                            dark:border-slate-800
-                            shadow-xl
-                            flex
-                            items-center
-                            justify-center
-                            shrink-0
-                          "
-                        >
-
-                          <span className="text-2xl font-black leading-none">
-                            {
-                              flower.count
-                            }
-                          </span>
-
-                        </div>
+  </div>
 
 
-                        {/* NAME */}
+  {/* FLOWER NAME */}
 
-                        <div className="ml-4 pr-6 min-w-0">
+  <div className="ml-5 flex-1 min-w-0">
 
-                          <span className="text-[10px] uppercase tracking-[0.18em] font-bold text-slate-400">
-                            Quantity
-                          </span>
-
-
-                          <h4 className="font-bold text-base mt-1 leading-tight">
-                            {
-                              flower.name
-                            }
-                          </h4>
-
-                        </div>
-
-                      </div>
-
-                    );
-                  }
-                )}
-
-              </div>
-
-            </div>
-
-          </div>
+    <span className="
+      text-[10px]
+      uppercase
+      tracking-[0.16em]
+      font-bold
+      text-slate-400
+    ">
+      Quantity
+    </span>
 
 
-        ) : (
+    <h4 className="
+      font-bold
+      text-base
+      mt-1
+      leading-tight
+    ">
+      {flower.name}
+    </h4>
+
+  </div>
+
+
+  {/* QUANTITY */}
+
+  <div
+    className={`
+      ml-4
+      w-12
+      h-12
+      rounded-full
+      flex
+      items-center
+      justify-center
+      shrink-0
+      shadow-md
+      ${
+        darkMode
+          ? 'bg-slate-700 text-white'
+          : 'bg-slate-900 text-white'
+      }
+    `}
+    title={`Quantity: ${flower.count}`}
+  >
+
+    <span className="
+      text-xl
+      font-black
+      leading-none
+    ">
+      {flower.count}
+    </span>
+
+  </div>
+
+</div>
 
 
           /* ====================================================
