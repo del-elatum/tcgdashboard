@@ -11,16 +11,764 @@
     <title>The Crochet Garden - Snoonu Hub</title>
 
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   </head>
 
   <body class="bg-slate-50 text-slate-800 font-sans">
     <div id="app"></div>
 
-    <script
-      type="module"
-      src="/src/main.jsx"
-    ></script>
+    <script type="module">
+      import { supabase } from './src/supabase.js';
+
+      /*
+      ==========================================================
+      YOUR SUPABASE LOGIN EMAIL
+
+      Replace ONLY the text between the quotes below with
+      the email address of the Supabase user you created.
+
+      The visitor will never be asked to type this email.
+      ==========================================================
+      */
+
+      const AUTH_EMAIL = 'del.elatum@gmail.com';
+
+      const app = document.getElementById('app');
+
+      /* ========================================================
+         LOAD THE REAL DASHBOARD
+      ======================================================== */
+
+      async function loadDashboard() {
+        app.innerHTML = '';
+
+        await import('./src/main.jsx');
+
+        createLogoutButton();
+      }
+
+      /* ========================================================
+         LOGOUT BUTTON
+      ======================================================== */
+
+      function createLogoutButton() {
+        if (document.getElementById('tcg-logout')) {
+          return;
+        }
+
+        const button = document.createElement('button');
+
+        button.id = 'tcg-logout';
+        button.innerHTML = `
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+            <polyline points="16 17 21 12 16 7"/>
+            <line x1="21" y1="12" x2="9" y2="12"/>
+          </svg>
+
+          <span>Lock</span>
+        `;
+
+        button.style.cssText = `
+          position: fixed;
+          bottom: 24px;
+          right: 24px;
+          z-index: 9999;
+
+          display: flex;
+          align-items: center;
+          gap: 8px;
+
+          padding: 10px 16px;
+
+          border: 1px solid rgba(148, 163, 184, 0.25);
+          border-radius: 14px;
+
+          background: rgba(15, 23, 42, 0.92);
+          color: white;
+
+          font-size: 12px;
+          font-weight: 600;
+
+          cursor: pointer;
+
+          box-shadow:
+            0 10px 30px rgba(15, 23, 42, 0.18);
+
+          backdrop-filter: blur(16px);
+
+          transition:
+            transform 0.2s ease,
+            opacity 0.2s ease;
+        `;
+
+        button.addEventListener(
+          'mouseenter',
+          () => {
+            button.style.transform =
+              'translateY(-2px)';
+          }
+        );
+
+        button.addEventListener(
+          'mouseleave',
+          () => {
+            button.style.transform =
+              'translateY(0)';
+          }
+        );
+
+        button.addEventListener(
+          'click',
+          async () => {
+            await supabase.auth.signOut();
+            window.location.reload();
+          }
+        );
+
+        document.body.appendChild(button);
+      }
+
+      /* ========================================================
+         PIN SCREEN
+      ======================================================== */
+
+      function showPinScreen() {
+        app.innerHTML = `
+          <div
+            style="
+              min-height: 100vh;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              padding: 24px;
+              background:
+                radial-gradient(
+                  circle at top left,
+                  rgba(148, 163, 184, 0.20),
+                  transparent 35%
+                ),
+                radial-gradient(
+                  circle at bottom right,
+                  rgba(203, 213, 225, 0.35),
+                  transparent 40%
+                ),
+                #f8fafc;
+              font-family:
+                Inter,
+                ui-sans-serif,
+                system-ui,
+                -apple-system,
+                BlinkMacSystemFont,
+                'Segoe UI',
+                sans-serif;
+            "
+          >
+
+            <div
+              style="
+                width: 100%;
+                max-width: 420px;
+              "
+            >
+
+              <!-- LOGO / BRAND -->
+
+              <div
+                style="
+                  text-align: center;
+                  margin-bottom: 28px;
+                "
+              >
+
+                <div
+                  style="
+                    width: 72px;
+                    height: 72px;
+
+                    margin: 0 auto 18px;
+
+                    border-radius: 24px;
+                    overflow: hidden;
+
+                    background: white;
+
+                    box-shadow:
+                      0 18px 45px rgba(15, 23, 42, 0.12);
+
+                    border:
+                      1px solid rgba(226, 232, 240, 0.9);
+                  "
+                >
+                  <img
+                    src="https://raw.githubusercontent.com/del-elatum/tcgdashboard/refs/heads/main/logo.png"
+                    alt="The Crochet Garden"
+                    style="
+                      width: 100%;
+                      height: 100%;
+                      object-fit: cover;
+                    "
+                  />
+                </div>
+
+                <h1
+                  style="
+                    margin: 0;
+
+                    font-size: 25px;
+                    line-height: 1.2;
+
+                    font-weight: 750;
+
+                    color: #0f172a;
+
+                    letter-spacing: -0.035em;
+                  "
+                >
+                  The Crochet Garden
+                </h1>
+
+                <p
+                  style="
+                    margin: 7px 0 0;
+
+                    font-size: 13px;
+                    font-weight: 500;
+
+                    color: #94a3b8;
+                  "
+                >
+                  Product Dashboard
+                </p>
+
+              </div>
+
+
+              <!-- LOGIN CARD -->
+
+              <div
+                style="
+                  background:
+                    rgba(255, 255, 255, 0.88);
+
+                  border:
+                    1px solid rgba(226, 232, 240, 0.95);
+
+                  border-radius: 30px;
+
+                  padding: 34px;
+
+                  box-shadow:
+                    0 24px 70px rgba(15, 23, 42, 0.10);
+
+                  backdrop-filter: blur(20px);
+                "
+              >
+
+                <div
+                  style="
+                    text-align: center;
+                    margin-bottom: 28px;
+                  "
+                >
+
+                  <h2
+                    style="
+                      margin: 0;
+
+                      font-size: 18px;
+                      font-weight: 700;
+
+                      color: #1e293b;
+
+                      letter-spacing: -0.02em;
+                    "
+                  >
+                    Welcome back
+                  </h2>
+
+                  <p
+                    style="
+                      margin: 7px 0 0;
+
+                      font-size: 13px;
+                      line-height: 1.5;
+
+                      color: #94a3b8;
+                    "
+                  >
+                    Enter your 4-digit access code
+                  </p>
+
+                </div>
+
+
+                <!-- PIN BOXES -->
+
+                <div
+                  id="pin-boxes"
+                  style="
+                    display: flex;
+                    justify-content: center;
+                    gap: 12px;
+
+                    margin-bottom: 24px;
+                  "
+                >
+
+                  <div class="pin-box"></div>
+                  <div class="pin-box"></div>
+                  <div class="pin-box"></div>
+                  <div class="pin-box"></div>
+
+                </div>
+
+
+                <!-- HIDDEN INPUT -->
+
+                <input
+                  id="pin-input"
+                  type="password"
+                  inputmode="numeric"
+                  pattern="[0-9]*"
+                  maxlength="4"
+                  autocomplete="one-time-code"
+
+                  style="
+                    position: absolute;
+                    opacity: 0;
+                    pointer-events: none;
+                  "
+                />
+
+
+                <!-- UNLOCK BUTTON -->
+
+                <button
+                  id="unlock-button"
+
+                  style="
+                    width: 100%;
+
+                    padding: 14px 18px;
+
+                    border: none;
+                    border-radius: 15px;
+
+                    background:
+                      linear-gradient(
+                        135deg,
+                        #334155,
+                        #0f172a
+                      );
+
+                    color: white;
+
+                    font-size: 13px;
+                    font-weight: 650;
+
+                    cursor: pointer;
+
+                    box-shadow:
+                      0 12px 30px rgba(15, 23, 42, 0.18);
+
+                    transition:
+                      transform 0.2s ease,
+                      opacity 0.2s ease;
+                  "
+                >
+                  Unlock Dashboard
+                </button>
+
+
+                <!-- MESSAGE -->
+
+                <div
+                  id="login-message"
+
+                  style="
+                    min-height: 20px;
+
+                    margin-top: 17px;
+
+                    text-align: center;
+
+                    font-size: 12px;
+                    font-weight: 500;
+
+                    color: #94a3b8;
+                  "
+                ></div>
+
+              </div>
+
+
+              <!-- FOOTER -->
+
+              <p
+                style="
+                  text-align: center;
+
+                  margin: 20px 0 0;
+
+                  color: #cbd5e1;
+
+                  font-size: 11px;
+                  font-weight: 500;
+                "
+              >
+                Secure catalogue access
+              </p>
+
+            </div>
+
+          </div>
+
+          <style>
+
+            .pin-box {
+              width: 58px;
+              height: 62px;
+
+              display: flex;
+              align-items: center;
+              justify-content: center;
+
+              background: #f8fafc;
+
+              border:
+                1.5px solid #e2e8f0;
+
+              border-radius: 17px;
+
+              box-shadow:
+                inset 0 1px 2px rgba(15, 23, 42, 0.02);
+
+              transition:
+                border-color 0.18s ease,
+                background 0.18s ease,
+                transform 0.18s ease,
+                box-shadow 0.18s ease;
+            }
+
+            .pin-box.active {
+              border-color: #64748b;
+
+              background: #ffffff;
+
+              box-shadow:
+                0 0 0 4px rgba(100, 116, 139, 0.08);
+
+              transform: translateY(-1px);
+            }
+
+            .pin-box.filled::after {
+              content: "";
+
+              width: 10px;
+              height: 10px;
+
+              border-radius: 999px;
+
+              background: #334155;
+            }
+
+            .pin-box.error {
+              border-color: #ef4444;
+
+              background: #fef2f2;
+
+              animation:
+                shake 0.3s ease;
+            }
+
+            @keyframes shake {
+              0% {
+                transform: translateX(0);
+              }
+
+              25% {
+                transform: translateX(-4px);
+              }
+
+              50% {
+                transform: translateX(4px);
+              }
+
+              75% {
+                transform: translateX(-3px);
+              }
+
+              100% {
+                transform: translateX(0);
+              }
+            }
+
+          </style>
+        `;
+
+        const pinInput =
+          document.getElementById(
+            'pin-input'
+          );
+
+        const unlockButton =
+          document.getElementById(
+            'unlock-button'
+          );
+
+        const message =
+          document.getElementById(
+            'login-message'
+          );
+
+        const boxes = [
+          ...document.querySelectorAll(
+            '.pin-box'
+          ),
+        ];
+
+        /* ------------------------------------------------------
+           UPDATE PIN BOXES
+        ------------------------------------------------------ */
+
+        function updateBoxes() {
+          const value =
+            pinInput.value;
+
+          boxes.forEach(
+            (box, index) => {
+              box.classList.remove(
+                'filled',
+                'active',
+                'error'
+              );
+
+              if (
+                index <
+                value.length
+              ) {
+                box.classList.add(
+                  'filled'
+                );
+              }
+
+              if (
+                index ===
+                  value.length &&
+                value.length < 4
+              ) {
+                box.classList.add(
+                  'active'
+                );
+              }
+            }
+          );
+        }
+
+        /* ------------------------------------------------------
+           FOCUS PIN
+        ------------------------------------------------------ */
+
+        function focusPin() {
+          pinInput.focus();
+        }
+
+        document
+          .getElementById(
+            'pin-boxes'
+          )
+          .addEventListener(
+            'click',
+            focusPin
+          );
+
+        document
+          .querySelector(
+            '.pin-box'
+          )
+          ?.classList.add(
+            'active'
+          );
+
+        setTimeout(
+          focusPin,
+          250
+        );
+
+        /* ------------------------------------------------------
+           INPUT
+        ------------------------------------------------------ */
+
+        pinInput.addEventListener(
+          'input',
+          () => {
+            pinInput.value =
+              pinInput.value
+                .replace(
+                  /\D/g,
+                  ''
+                )
+                .slice(
+                  0,
+                  4
+                );
+
+            message.textContent =
+              '';
+
+            updateBoxes();
+
+            if (
+              pinInput.value.length ===
+              4
+            ) {
+              setTimeout(
+                attemptLogin,
+                120
+              );
+            }
+          }
+        );
+
+        /* ------------------------------------------------------
+           BUTTON
+        ------------------------------------------------------ */
+
+        unlockButton.addEventListener(
+          'click',
+          attemptLogin
+        );
+
+        /* ------------------------------------------------------
+           LOGIN
+        ------------------------------------------------------ */
+
+        async function attemptLogin() {
+          const pin =
+            pinInput.value;
+
+          if (
+            pin.length !== 4
+          ) {
+            message.textContent =
+              'Enter all four digits.';
+
+            message.style.color =
+              '#ef4444';
+
+            return;
+          }
+
+          unlockButton.disabled =
+            true;
+
+          unlockButton.style.opacity =
+            '0.65';
+
+          unlockButton.textContent =
+            'Unlocking...';
+
+          message.textContent =
+            '';
+
+          const {
+            error,
+          } =
+            await supabase.auth.signInWithPassword(
+              {
+                email: AUTH_EMAIL,
+                password: pin,
+              }
+            );
+
+          if (error) {
+            boxes.forEach(
+              box =>
+                box.classList.add(
+                  'error'
+                )
+            );
+
+            pinInput.value =
+              '';
+
+            message.textContent =
+              'Incorrect access code.';
+
+            message.style.color =
+              '#ef4444';
+
+            unlockButton.disabled =
+              false;
+
+            unlockButton.style.opacity =
+              '1';
+
+            unlockButton.textContent =
+              'Unlock Dashboard';
+
+            setTimeout(
+              () => {
+                updateBoxes();
+                focusPin();
+              },
+              350
+            );
+
+            return;
+          }
+
+          message.textContent =
+            'Access granted';
+
+          message.style.color =
+            '#16a34a';
+
+          unlockButton.textContent =
+            'Opening dashboard...';
+
+          setTimeout(
+            loadDashboard,
+            350
+          );
+        }
+      }
+
+
+      /* ========================================================
+         CHECK EXISTING SESSION
+
+         Supabase normally persists browser sessions, so if
+         you have already unlocked this browser, the dashboard
+         opens directly until you press Lock.
+      ======================================================== */
+
+      async function start() {
+        const {
+          data: {
+            session,
+          },
+        } =
+          await supabase.auth.getSession();
+
+        if (session) {
+          await loadDashboard();
+        } else {
+          showPinScreen();
+        }
+      }
+
+      start();
+    </script>
   </body>
 </html>
