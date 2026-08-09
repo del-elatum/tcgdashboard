@@ -878,26 +878,25 @@ function App() {
           </div>
         )}
 
-        {selectedProduct && (
-          <button
-            onClick={() => setSelectedProduct(null)}
-            className={`fixed top-8 ${
-              sidebarOpen ? 'left-72' : 'left-24'
-            } z-30 w-12 h-12 rounded-full flex items-center justify-center shadow-xl border transition-all hover:scale-105 ${
-              darkMode
-                ? 'bg-slate-900 border-slate-700 text-white shadow-black/50'
-                : 'bg-white border-slate-200 text-slate-800 shadow-slate-300'
-            }`}
-            title="Back to Dashboard"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </button>
-        )}
-
         {/* TOP BAR */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
-          <div>
-            <h2 className="text-2xl font-bold tracking-tight">
+          <div className="flex items-start gap-3">
+            {selectedProduct && (
+              <button
+                onClick={() => setSelectedProduct(null)}
+                className={`mt-0.5 w-10 h-10 rounded-full flex items-center justify-center shadow-md border transition-all hover:scale-105 shrink-0 ${
+                  darkMode
+                    ? 'bg-slate-900 border-slate-700 text-white'
+                    : 'bg-white border-slate-200 text-slate-800'
+                }`}
+                title="Back to Dashboard"
+              >
+                <ArrowLeft className="w-5 h-5" />
+              </button>
+            )}
+
+            <div>
+              <h2 className="text-2xl font-bold tracking-tight">
               {selectedProduct
                 ? 'Order Breakdown'
                 : activeTab === 'single-flowers'
@@ -916,6 +915,7 @@ function App() {
                     ? 'Master catalog of pre-designed arrangements.'
                     : `Showing ${filteredProducts.length} items in your catalog.`}
             </p>
+            </div>
           </div>
 
           <div className="flex items-center gap-3 w-full md:w-auto">
@@ -1281,7 +1281,7 @@ function App() {
                             <X className="w-3.5 h-3.5" />
                           </button>
 
-                          <div className="flex items-center gap-4 pr-6">
+                          <div className="flex items-center pr-7 w-full">
                             <div
                               className="w-32 h-32 rounded-2xl overflow-hidden bg-slate-100 dark:bg-slate-800 shadow-md shrink-0 border border-slate-200/50 dark:border-slate-700/50 cursor-pointer"
                               onClick={() => {
@@ -1296,12 +1296,25 @@ function App() {
                               />
                             </div>
 
-                            <div>
-                              <h5 className="font-bold text-sm leading-tight mb-1">
+                            <div
+                              className={`-ml-5 z-10 w-16 h-16 rounded-full flex items-center justify-center shrink-0 border-4 shadow-lg ${
+                                darkMode
+                                  ? 'bg-slate-700 border-slate-800 text-white'
+                                  : 'bg-slate-900 border-slate-50 text-white'
+                              }`}
+                              title={`Quantity: ${flower.count}`}
+                            >
+                              <span className="text-2xl font-extrabold leading-none tracking-tight">
+                                {flower.count}
+                              </span>
+                            </div>
+
+                            <div className="ml-4 min-w-0">
+                              <h5 className="font-bold text-base leading-tight">
                                 {flower.name}
                               </h5>
-                              <span className="text-xs text-slate-400 font-medium">
-                                Qty: {flower.count}
+                              <span className="text-[11px] uppercase tracking-wider text-slate-400 font-semibold mt-1 block">
+                                Quantity
                               </span>
                             </div>
                           </div>
