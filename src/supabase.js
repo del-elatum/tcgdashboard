@@ -1,8 +1,8 @@
 const SUPABASE_URL =
-  'PASTE_YOUR_VITE_SUPABASE_URL_HERE';
+  'https://lhwbnfjtywdsafiumity.supabase.co';
 
 const SUPABASE_PUBLISHABLE_KEY =
-  'PASTE_YOUR_VITE_SUPABASE_PUBLISHABLE_KEY_HERE';
+  'sb_publishable_AwgRJVy5fJmT160MBB-skw_zCXDrSOQ';
 
 export const supabase =
   window.supabase.createClient(
