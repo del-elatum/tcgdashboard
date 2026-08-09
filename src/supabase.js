@@ -1,9 +1,11 @@
-import { createClient } from '@supabase/supabase-js';
+const SUPABASE_URL =
+  'PASTE_YOUR_VITE_SUPABASE_URL_HERE';
 
-const supabaseUrl = 'PASTE_PROJECT_URL_HERE';
-const supabaseKey = 'PASTE_PUBLISHABLE_KEY_HERE';
+const SUPABASE_PUBLISHABLE_KEY =
+  'PASTE_YOUR_VITE_SUPABASE_PUBLISHABLE_KEY_HERE';
 
-export const supabase = createClient(
-  supabaseUrl,
-  supabaseKey
-);
+export const supabase =
+  window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_PUBLISHABLE_KEY
+  );
