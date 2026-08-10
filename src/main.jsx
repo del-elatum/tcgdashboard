@@ -33,41 +33,113 @@ import { supabase } from './supabase';
 
 function App() {
   const [darkMode, setDarkMode] = useState(false);
+
   const [activeTab, setActiveTab] = useState('all');
+
   const [searchQuery, setSearchQuery] = useState('');
+
   const [selectedProduct, setSelectedProduct] = useState(null);
+
   const [sidebarOpen, setSidebarOpen] = useState(true);
+
   const [zoomedImage, setZoomedImage] = useState(null);
 
 
   /* ============================================================
-     DATABASE STATE
+     DATABASE
   ============================================================ */
 
   const [products, setProducts] = useState([]);
+
   const [masterFlowers, setMasterFlowers] = useState([]);
+
   const [arrangements, setArrangements] = useState([]);
+
   const [loading, setLoading] = useState(true);
+
   const [databaseError, setDatabaseError] = useState('');
 
 
   /* ============================================================
-     MODAL STATE
+     ADD MODALS
   ============================================================ */
 
   const [isAddingProduct, setIsAddingProduct] = useState(false);
+
   const [isAddingFlower, setIsAddingFlower] = useState(false);
+
   const [isAddingArrangement, setIsAddingArrangement] = useState(false);
 
 
   /* ============================================================
-     EDIT FLOWER STATE
+     EDIT FLOWER
   ============================================================ */
 
   const [editingFlower, setEditingFlower] = useState(null);
+
   const [editFlowerName, setEditFlowerName] = useState('');
+
   const [editFlowerImage, setEditFlowerImage] = useState('');
+
   const [savingFlowerEdit, setSavingFlowerEdit] = useState(false);
+
+
+  /* ============================================================
+     EDIT PRODUCT
+  ============================================================ */
+
+  const [editingProduct, setEditingProduct] = useState(null);
+
+  const [editProductName, setEditProductName] = useState('');
+
+  const [editProductPrice, setEditProductPrice] = useState('');
+
+  const [editProductImage, setEditProductImage] = useState('');
+
+  const [editProductFlowers, setEditProductFlowers] = useState([]);
+
+  const [savingProductEdit, setSavingProductEdit] = useState(false);
+
+  const [isEditProductPickerOpen, setIsEditProductPickerOpen] =
+    useState(false);
+
+  const [editProductPickerSearch, setEditProductPickerSearch] =
+    useState('');
+
+  const [selectedEditProductFlower, setSelectedEditProductFlower] =
+    useState(null);
+
+  const [editProductFlowerCount, setEditProductFlowerCount] =
+    useState(1);
+
+  const editProductPickerRef = useRef(null);
+
+
+  /* ============================================================
+     EDIT ARRANGEMENT
+  ============================================================ */
+
+  const [editingArrangement, setEditingArrangement] = useState(null);
+
+  const [editArrangementName, setEditArrangementName] = useState('');
+
+  const [editArrangementPrice, setEditArrangementPrice] = useState('');
+
+  const [editArrangementImage, setEditArrangementImage] = useState('');
+
+  const [savingArrangementEdit, setSavingArrangementEdit] =
+    useState(false);
+
+
+  /* ============================================================
+     DIRECT QUANTITY EDITING
+  ============================================================ */
+
+  const [editingQuantityIndex, setEditingQuantityIndex] = useState(null);
+
+  const [quantityDraft, setQuantityDraft] = useState('');
+
+  const [savingQuantity, setSavingQuantity] = useState(false);
 
 
   /* ============================================================
@@ -75,8 +147,11 @@ function App() {
   ============================================================ */
 
   const [isFlowerPickerOpen, setIsFlowerPickerOpen] = useState(false);
+
   const [flowerPickerSearch, setFlowerPickerSearch] = useState('');
+
   const [selectedMasterFlower, setSelectedMasterFlower] = useState(null);
+
   const [recipeFlowerCount, setRecipeFlowerCount] = useState(1);
 
   const pickerRef = useRef(null);
@@ -87,9 +162,13 @@ function App() {
   ============================================================ */
 
   const [isModalPickerOpen, setIsModalPickerOpen] = useState(false);
+
   const [modalPickerSearch, setModalPickerSearch] = useState('');
+
   const [selectedModalFlower, setSelectedModalFlower] = useState(null);
+
   const [modalFlowerCount, setModalFlowerCount] = useState(1);
+
   const [newModalFlowersList, setNewModalFlowersList] = useState([]);
 
   const modalPickerRef = useRef(null);
@@ -100,8 +179,11 @@ function App() {
   ============================================================ */
 
   const [newName, setNewName] = useState('');
+
   const [newCategory, setNewCategory] = useState('ready-bouquets');
+
   const [newPrice, setNewPrice] = useState('');
+
   const [newImage, setNewImage] = useState('');
 
 
@@ -110,6 +192,7 @@ function App() {
   ============================================================ */
 
   const [newFlowerName, setNewFlowerName] = useState('');
+
   const [newFlowerImage, setNewFlowerImage] = useState('');
 
 
@@ -118,7 +201,9 @@ function App() {
   ============================================================ */
 
   const [newArrangementName, setNewArrangementName] = useState('');
+
   const [newArrangementPrice, setNewArrangementPrice] = useState('');
+
   const [newArrangementImage, setNewArrangementImage] = useState('');
 
 
@@ -133,6 +218,7 @@ function App() {
 
   async function loadDatabase() {
     setLoading(true);
+
     setDatabaseError('');
 
     try {
@@ -242,7 +328,9 @@ function App() {
 
 
       setProducts(loadedProducts);
+
       setMasterFlowers(loadedFlowers);
+
       setArrangements(loadedArrangements);
     } catch (error) {
       console.error(
@@ -281,7 +369,7 @@ function App() {
 
 
   /* ============================================================
-     CLOSE PICKERS WHEN CLICKING OUTSIDE
+     CLOSE DROPDOWNS
   ============================================================ */
 
   useEffect(() => {
@@ -299,6 +387,13 @@ function App() {
       ) {
         setIsModalPickerOpen(false);
       }
+
+      if (
+        editProductPickerRef.current &&
+        !editProductPickerRef.current.contains(event.target)
+      ) {
+        setIsEditProductPickerOpen(false);
+      }
     }
 
     document.addEventListener(
@@ -315,7 +410,7 @@ function App() {
 
 
   /* ============================================================
-     FLOWER IMAGE RESOLVER
+     IMAGE RESOLVER
   ============================================================ */
 
   function getFlowerImage(flower) {
@@ -345,6 +440,25 @@ function App() {
 
 
   /* ============================================================
+     PRICE FORMATTER
+  ============================================================ */
+
+  function formatPrice(price) {
+    const value = String(price || '').trim();
+
+    if (!value) {
+      return '';
+    }
+
+    return value
+      .toUpperCase()
+      .includes('QAR')
+      ? value
+      : `${value} QAR`;
+  }
+
+
+  /* ============================================================
      ADD PRODUCT
   ============================================================ */
 
@@ -365,12 +479,7 @@ function App() {
 
       category: newCategory,
 
-      price:
-        newPrice
-          .toUpperCase()
-          .includes('QAR')
-          ? newPrice.trim()
-          : `${newPrice.trim()} QAR`,
+      price: formatPrice(newPrice),
 
       image:
         newImage.trim() ||
@@ -405,17 +514,25 @@ function App() {
 
 
     setNewName('');
+
     setNewPrice('');
+
     setNewImage('');
+
     setNewModalFlowersList([]);
+
     setSelectedModalFlower(null);
+
     setModalFlowerCount(1);
+
+    setModalPickerSearch('');
+
     setIsAddingProduct(false);
   }
 
 
   /* ============================================================
-     ADD FLOWER TO NEW PRODUCT
+     NEW PRODUCT FLOWERS
   ============================================================ */
 
   function handleAddModalFlower() {
@@ -423,9 +540,9 @@ function App() {
       return;
     }
 
-
     const item = {
       name: selectedModalFlower.name,
+
       image: selectedModalFlower.image,
 
       count:
@@ -445,7 +562,9 @@ function App() {
 
 
     setSelectedModalFlower(null);
+
     setModalFlowerCount(1);
+
     setModalPickerSearch('');
   }
 
@@ -468,11 +587,9 @@ function App() {
   async function handleAddFlower(event) {
     event.preventDefault();
 
-
     if (!newFlowerName.trim()) {
       return;
     }
-
 
     const flower = {
       id: `flower-${Date.now()}`,
@@ -510,13 +627,15 @@ function App() {
 
 
     setNewFlowerName('');
+
     setNewFlowerImage('');
+
     setIsAddingFlower(false);
   }
 
 
   /* ============================================================
-     EDIT MASTER FLOWER
+     EDIT FLOWER
   ============================================================ */
 
   function openEditFlower(
@@ -526,7 +645,9 @@ function App() {
     event?.stopPropagation();
 
     setEditingFlower(flower);
+
     setEditFlowerName(flower.name || '');
+
     setEditFlowerImage(flower.image || '');
   }
 
@@ -537,14 +658,15 @@ function App() {
     }
 
     setEditingFlower(null);
+
     setEditFlowerName('');
+
     setEditFlowerImage('');
   }
 
 
   async function handleSaveFlowerEdit(event) {
     event.preventDefault();
-
 
     if (
       !editingFlower ||
@@ -553,13 +675,11 @@ function App() {
       return;
     }
 
-
     setSavingFlowerEdit(true);
+
     setDatabaseError('');
 
-
     const oldName = editingFlower.name;
-
 
     const updatedFlower = {
       ...editingFlower,
@@ -571,8 +691,6 @@ function App() {
 
 
     try {
-      /* UPDATE MASTER FLOWER */
-
       const {
         error: flowerError,
       } = await supabase
@@ -591,8 +709,6 @@ function App() {
         throw flowerError;
       }
 
-
-      /* UPDATE FLOWER INSIDE EXISTING BOUQUETS */
 
       const affectedProducts =
         products
@@ -719,7 +835,9 @@ function App() {
 
 
       setEditingFlower(null);
+
       setEditFlowerName('');
+
       setEditFlowerImage('');
     } catch (error) {
       console.error(error);
@@ -734,7 +852,381 @@ function App() {
 
 
   /* ============================================================
-     DELETE MASTER FLOWER
+     EDIT PRODUCT
+  ============================================================ */
+
+  function openEditProduct(
+    product,
+    event
+  ) {
+    event?.stopPropagation();
+
+    setEditingProduct(product);
+
+    setEditProductName(
+      product.name || ''
+    );
+
+    setEditProductPrice(
+      product.price || ''
+    );
+
+    setEditProductImage(
+      product.image || ''
+    );
+
+    setEditProductFlowers(
+      (product.flowers || []).map(
+        flower => ({
+          ...flower,
+        })
+      )
+    );
+
+    setSelectedEditProductFlower(null);
+
+    setEditProductFlowerCount(1);
+
+    setEditProductPickerSearch('');
+
+    setIsEditProductPickerOpen(false);
+  }
+
+
+  function closeEditProduct() {
+    if (savingProductEdit) {
+      return;
+    }
+
+    setEditingProduct(null);
+
+    setEditProductName('');
+
+    setEditProductPrice('');
+
+    setEditProductImage('');
+
+    setEditProductFlowers([]);
+
+    setSelectedEditProductFlower(null);
+
+    setEditProductFlowerCount(1);
+
+    setEditProductPickerSearch('');
+
+    setIsEditProductPickerOpen(false);
+  }
+
+
+  function addFlowerToEditProduct() {
+    if (!selectedEditProductFlower) {
+      return;
+    }
+
+    const newFlower = {
+      name: selectedEditProductFlower.name,
+
+      image: selectedEditProductFlower.image,
+
+      count:
+        parseInt(
+          editProductFlowerCount,
+          10
+        ) || 1,
+    };
+
+
+    setEditProductFlowers(
+      previous => [
+        ...previous,
+        newFlower,
+      ]
+    );
+
+
+    setSelectedEditProductFlower(null);
+
+    setEditProductFlowerCount(1);
+
+    setEditProductPickerSearch('');
+
+    setIsEditProductPickerOpen(false);
+  }
+
+
+  function removeFlowerFromEditProduct(index) {
+    setEditProductFlowers(
+      previous =>
+        previous.filter(
+          (_, i) =>
+            i !== index
+        )
+    );
+  }
+
+
+  function updateEditProductFlowerQuantity(
+    index,
+    value
+  ) {
+    const count =
+      Math.max(
+        1,
+        parseInt(
+          value,
+          10
+        ) || 1
+      );
+
+
+    setEditProductFlowers(
+      previous =>
+        previous.map(
+          (flower, i) =>
+            i === index
+              ? {
+                  ...flower,
+                  count,
+                }
+              : flower
+        )
+    );
+  }
+
+
+  async function handleSaveProductEdit(event) {
+    event.preventDefault();
+
+    if (
+      !editingProduct ||
+      !editProductName.trim() ||
+      !editProductPrice.trim()
+    ) {
+      return;
+    }
+
+    setSavingProductEdit(true);
+
+    setDatabaseError('');
+
+
+    const updatedProduct = {
+      ...editingProduct,
+
+      name:
+        editProductName.trim(),
+
+      price:
+        formatPrice(
+          editProductPrice
+        ),
+
+      image:
+        editProductImage.trim(),
+
+      flowers:
+        editProductFlowers,
+    };
+
+
+    try {
+      const {
+        error,
+      } = await supabase
+        .from('products')
+        .update({
+          name:
+            updatedProduct.name,
+
+          price:
+            updatedProduct.price,
+
+          image:
+            updatedProduct.image,
+
+          flowers:
+            updatedProduct.flowers,
+        })
+        .eq(
+          'id',
+          editingProduct.id
+        );
+
+
+      if (error) {
+        throw error;
+      }
+
+
+      setProducts(
+        previous =>
+          previous.map(
+            product =>
+              product.id ===
+              editingProduct.id
+                ? updatedProduct
+                : product
+          )
+      );
+
+
+      setEditingProduct(null);
+
+      setEditProductName('');
+
+      setEditProductPrice('');
+
+      setEditProductImage('');
+
+      setEditProductFlowers([]);
+
+      setSelectedEditProductFlower(null);
+    } catch (error) {
+      console.error(error);
+
+      setDatabaseError(
+        `Could not edit bouquet: ${error.message}`
+      );
+    } finally {
+      setSavingProductEdit(false);
+    }
+  }
+
+
+  /* ============================================================
+     EDIT ARRANGEMENT
+  ============================================================ */
+
+  function openEditArrangement(
+    arrangement,
+    event
+  ) {
+    event?.stopPropagation();
+
+    setEditingArrangement(
+      arrangement
+    );
+
+    setEditArrangementName(
+      arrangement.name || ''
+    );
+
+    setEditArrangementPrice(
+      arrangement.price || ''
+    );
+
+    setEditArrangementImage(
+      arrangement.image || ''
+    );
+  }
+
+
+  function closeEditArrangement() {
+    if (savingArrangementEdit) {
+      return;
+    }
+
+    setEditingArrangement(null);
+
+    setEditArrangementName('');
+
+    setEditArrangementPrice('');
+
+    setEditArrangementImage('');
+  }
+
+
+  async function handleSaveArrangementEdit(event) {
+    event.preventDefault();
+
+    if (
+      !editingArrangement ||
+      !editArrangementName.trim() ||
+      !editArrangementPrice.trim()
+    ) {
+      return;
+    }
+
+    setSavingArrangementEdit(true);
+
+    setDatabaseError('');
+
+
+    const updatedArrangement = {
+      ...editingArrangement,
+
+      name:
+        editArrangementName.trim(),
+
+      price:
+        formatPrice(
+          editArrangementPrice
+        ),
+
+      image:
+        editArrangementImage.trim(),
+    };
+
+
+    try {
+      const {
+        error,
+      } = await supabase
+        .from('arrangements')
+        .update({
+          name:
+            updatedArrangement.name,
+
+          price:
+            updatedArrangement.price,
+
+          image:
+            updatedArrangement.image,
+        })
+        .eq(
+          'id',
+          editingArrangement.id
+        );
+
+
+      if (error) {
+        throw error;
+      }
+
+
+      setArrangements(
+        previous =>
+          previous.map(
+            arrangement =>
+              arrangement.id ===
+              editingArrangement.id
+                ? updatedArrangement
+                : arrangement
+          )
+      );
+
+
+      setEditingArrangement(null);
+
+      setEditArrangementName('');
+
+      setEditArrangementPrice('');
+
+      setEditArrangementImage('');
+    } catch (error) {
+      console.error(error);
+
+      setDatabaseError(
+        `Could not edit arrangement: ${error.message}`
+      );
+    } finally {
+      setSavingArrangementEdit(false);
+    }
+  }
+
+
+  /* ============================================================
+     DELETE FLOWER
   ============================================================ */
 
   async function deleteFlower(
@@ -742,7 +1234,6 @@ function App() {
     event
   ) {
     event.stopPropagation();
-
 
     if (
       !window.confirm(
@@ -762,7 +1253,9 @@ function App() {
 
 
     if (error) {
-      setDatabaseError(error.message);
+      setDatabaseError(
+        error.message
+      );
 
       return;
     }
@@ -785,7 +1278,6 @@ function App() {
   async function handleAddArrangement(event) {
     event.preventDefault();
 
-
     if (
       !newArrangementName.trim() ||
       !newArrangementPrice.trim()
@@ -802,11 +1294,9 @@ function App() {
         newArrangementName.trim(),
 
       price:
-        newArrangementPrice
-          .toUpperCase()
-          .includes('QAR')
-          ? newArrangementPrice.trim()
-          : `${newArrangementPrice.trim()} QAR`,
+        formatPrice(
+          newArrangementPrice
+        ),
 
       image:
         newArrangementImage.trim() ||
@@ -822,7 +1312,9 @@ function App() {
 
 
     if (error) {
-      setDatabaseError(error.message);
+      setDatabaseError(
+        error.message
+      );
 
       return;
     }
@@ -837,8 +1329,11 @@ function App() {
 
 
     setNewArrangementName('');
+
     setNewArrangementPrice('');
+
     setNewArrangementImage('');
+
     setIsAddingArrangement(false);
   }
 
@@ -852,7 +1347,6 @@ function App() {
     event
   ) {
     event.stopPropagation();
-
 
     if (
       !window.confirm(
@@ -872,7 +1366,9 @@ function App() {
 
 
     if (error) {
-      setDatabaseError(error.message);
+      setDatabaseError(
+        error.message
+      );
 
       return;
     }
@@ -881,8 +1377,8 @@ function App() {
     setArrangements(
       previous =>
         previous.filter(
-          item =>
-            item.id !== id
+          arrangement =>
+            arrangement.id !== id
         )
     );
   }
@@ -897,7 +1393,6 @@ function App() {
     event
   ) {
     event.stopPropagation();
-
 
     if (
       !window.confirm(
@@ -917,7 +1412,9 @@ function App() {
 
 
     if (error) {
-      setDatabaseError(error.message);
+      setDatabaseError(
+        error.message
+      );
 
       return;
     }
@@ -946,7 +1443,6 @@ function App() {
 
   async function addFlowerToProduct(event) {
     event.preventDefault();
-
 
     if (
       !selectedProduct ||
@@ -993,7 +1489,9 @@ function App() {
 
 
     if (error) {
-      setDatabaseError(error.message);
+      setDatabaseError(
+        error.message
+      );
 
       return;
     }
@@ -1020,13 +1518,15 @@ function App() {
 
 
     setSelectedMasterFlower(null);
+
     setRecipeFlowerCount(1);
+
     setFlowerPickerSearch('');
   }
 
 
   /* ============================================================
-     REMOVE FLOWER FROM BOUQUET
+     REMOVE FLOWER FROM EXISTING BOUQUET
   ============================================================ */
 
   async function removeFlowerFromProduct(index) {
@@ -1060,7 +1560,9 @@ function App() {
 
 
     if (error) {
-      setDatabaseError(error.message);
+      setDatabaseError(
+        error.message
+      );
 
       return;
     }
@@ -1084,6 +1586,121 @@ function App() {
               : product
         )
     );
+  }
+
+
+  /* ============================================================
+     DIRECT QUANTITY EDITING
+  ============================================================ */
+
+  function startQuantityEdit(
+    index,
+    currentCount
+  ) {
+    setEditingQuantityIndex(index);
+
+    setQuantityDraft(
+      String(
+        currentCount || 1
+      )
+    );
+  }
+
+
+  function cancelQuantityEdit() {
+    setEditingQuantityIndex(null);
+
+    setQuantityDraft('');
+  }
+
+
+  async function saveQuantityEdit(index) {
+    if (
+      !selectedProduct ||
+      savingQuantity
+    ) {
+      return;
+    }
+
+
+    const quantity =
+      Math.max(
+        1,
+        parseInt(
+          quantityDraft,
+          10
+        ) || 1
+      );
+
+
+    const updatedFlowers =
+      (
+        selectedProduct.flowers ||
+        []
+      ).map(
+        (flower, i) =>
+          i === index
+            ? {
+                ...flower,
+                count: quantity,
+              }
+            : flower
+      );
+
+
+    setSavingQuantity(true);
+
+
+    const {
+      error,
+    } = await supabase
+      .from('products')
+      .update({
+        flowers:
+          updatedFlowers,
+      })
+      .eq(
+        'id',
+        selectedProduct.id
+      );
+
+
+    if (error) {
+      setDatabaseError(
+        `Could not update quantity: ${error.message}`
+      );
+
+      setSavingQuantity(false);
+
+      return;
+    }
+
+
+    const updatedProduct = {
+      ...selectedProduct,
+
+      flowers:
+        updatedFlowers,
+    };
+
+
+    setProducts(
+      previous =>
+        previous.map(
+          product =>
+            product.id ===
+            updatedProduct.id
+              ? updatedProduct
+              : product
+        )
+    );
+
+
+    setEditingQuantityIndex(null);
+
+    setQuantityDraft('');
+
+    setSavingQuantity(false);
   }
 
 
@@ -1171,6 +1788,19 @@ function App() {
     );
 
 
+  const editProductPickerFlowers =
+    masterFlowers.filter(
+      flower =>
+        (
+          flower.name || ''
+        )
+          .toLowerCase()
+          .includes(
+            editProductPickerSearch.toLowerCase()
+          )
+    );
+
+
   /* ============================================================
      LOADING
   ============================================================ */
@@ -1211,6 +1841,7 @@ function App() {
       } min-h-screen flex font-sans`}
     >
 
+
       {/* ======================================================
           SIDEBAR
       ====================================================== */}
@@ -1228,8 +1859,6 @@ function App() {
       >
 
         <div>
-
-          {/* LOGO */}
 
           <div className="flex items-center justify-between mb-10">
 
@@ -1273,10 +1902,6 @@ function App() {
             )}
 
 
-            {/* ================================================
-                FIXED LIGHT MODE COLLAPSE BUTTON
-            ================================================ */}
-
             {sidebarOpen && (
 
               <button
@@ -1317,8 +1942,6 @@ function App() {
 
           </div>
 
-
-          {/* EXPAND SIDEBAR */}
 
           {!sidebarOpen && (
 
@@ -1361,8 +1984,6 @@ function App() {
 
           )}
 
-
-          {/* NAVIGATION */}
 
           <nav className="space-y-2">
 
@@ -1451,8 +2072,6 @@ function App() {
         </div>
 
 
-        {/* DARK MODE */}
-
         <div
           className={`p-3 rounded-2xl flex items-center justify-between ${
             darkMode
@@ -1505,8 +2124,6 @@ function App() {
       <main className="flex-1 p-6 md:p-10 overflow-x-hidden">
 
 
-        {/* ERROR */}
-
         {databaseError && (
 
           <div className="mb-5 p-4 rounded-2xl bg-red-50 border border-red-200 text-red-700 flex justify-between">
@@ -1520,7 +2137,9 @@ function App() {
                 setDatabaseError('')
               }
             >
+
               <X className="w-4 h-4" />
+
             </button>
 
           </div>
@@ -1593,8 +2212,6 @@ function App() {
 
           </div>
 
-
-          {/* SEARCH */}
 
           <div className="flex items-center gap-3">
 
@@ -1703,8 +2320,6 @@ function App() {
                   }`}
                 >
 
-                  {/* EDIT */}
-
                   <button
                     onClick={
                       event =>
@@ -1714,14 +2329,13 @@ function App() {
                         )
                     }
                     className="absolute top-2 left-2 bg-slate-900 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition z-10"
+                    title="Edit flower"
                   >
 
                     <Pencil className="w-3.5 h-3.5" />
 
                   </button>
 
-
-                  {/* DELETE */}
 
                   <button
                     onClick={
@@ -1732,6 +2346,7 @@ function App() {
                         )
                     }
                     className="absolute top-2 right-2 bg-red-500 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition z-10"
+                    title="Delete flower"
                   >
 
                     <Trash2 className="w-3.5 h-3.5" />
@@ -1795,12 +2410,30 @@ function App() {
                   <button
                     onClick={
                       event =>
+                        openEditArrangement(
+                          arrangement,
+                          event
+                        )
+                    }
+                    className="absolute top-3 left-3 bg-slate-900 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition z-10"
+                    title="Edit arrangement"
+                  >
+
+                    <Pencil className="w-4 h-4" />
+
+                  </button>
+
+
+                  <button
+                    onClick={
+                      event =>
                         deleteArrangement(
                           arrangement.id,
                           event
                         )
                     }
                     className="absolute top-3 right-3 bg-red-500 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition z-10"
+                    title="Delete arrangement"
                   >
 
                     <Trash2 className="w-4 h-4" />
@@ -1859,12 +2492,29 @@ function App() {
             {/* PRODUCT */}
 
             <div
-              className={`rounded-3xl border p-6 shadow-sm ${
+              className={`rounded-3xl border p-6 shadow-sm relative ${
                 darkMode
                   ? 'bg-slate-900 border-slate-800'
                   : 'bg-white border-slate-200'
               }`}
             >
+
+              <button
+                onClick={
+                  event =>
+                    openEditProduct(
+                      selectedProduct,
+                      event
+                    )
+                }
+                className="absolute top-8 left-8 z-10 bg-slate-900 text-white w-9 h-9 rounded-full flex items-center justify-center shadow-lg"
+                title="Edit bouquet"
+              >
+
+                <Pencil className="w-4 h-4" />
+
+              </button>
+
 
               <div
                 onClick={() =>
@@ -1917,7 +2567,7 @@ function App() {
                 </h3>
 
                 <p className="text-xs text-slate-400 mt-1">
-                  Select flowers to add or remove ingredients
+                  Click a quantity number to edit it directly
                 </p>
 
               </div>
@@ -2107,6 +2757,11 @@ function App() {
                       );
 
 
+                    const editingThisQuantity =
+                      editingQuantityIndex ===
+                      index;
+
+
                     return (
 
                       <div
@@ -2119,8 +2774,6 @@ function App() {
                       >
 
 
-                        {/* REMOVE */}
-
                         <button
                           onClick={() =>
                             removeFlowerFromProduct(
@@ -2128,14 +2781,13 @@ function App() {
                             )
                           }
                           className="absolute top-3 right-3 w-7 h-7 rounded-full bg-slate-900 text-white flex items-center justify-center shadow z-10"
+                          title="Remove flower"
                         >
 
                           <X className="w-3.5 h-3.5" />
 
                         </button>
 
-
-                        {/* CARD CONTENT */}
 
                         <div className="flex items-center w-full pr-7">
 
@@ -2182,7 +2834,7 @@ function App() {
                           </div>
 
 
-                          {/* FLOWER INFORMATION */}
+                          {/* NAME */}
 
                           <div className="ml-5 flex-1 min-w-0">
 
@@ -2209,25 +2861,96 @@ function App() {
                           </div>
 
 
-                          {/* =====================================
-                              QUANTITY BADGE
-                              Smaller + far right + no overlap
-                          ===================================== */}
+                          {/* =================================================
+                              CLICKABLE QUANTITY
+                          ================================================= */}
 
-                          <div
-                            className={`ml-4 w-12 h-12 rounded-full flex items-center justify-center shrink-0 shadow-md ${
-                              darkMode
-                                ? 'bg-slate-700 text-white'
-                                : 'bg-slate-900 text-white'
-                            }`}
-                            title={`Quantity: ${flower.count}`}
-                          >
+                          {editingThisQuantity ? (
 
-                            <span className="text-xl font-black leading-none">
-                              {flower.count}
-                            </span>
+                            <input
+                              type="number"
+                              min="1"
+                              autoFocus
+                              value={quantityDraft}
+                              disabled={savingQuantity}
+                              onChange={
+                                event =>
+                                  setQuantityDraft(
+                                    event.target.value
+                                  )
+                              }
+                              onBlur={() =>
+                                saveQuantityEdit(
+                                  index
+                                )
+                              }
+                              onKeyDown={
+                                event => {
 
-                          </div>
+                                  if (
+                                    event.key ===
+                                    'Enter'
+                                  ) {
+                                    event.preventDefault();
+
+                                    event.currentTarget.blur();
+                                  }
+
+
+                                  if (
+                                    event.key ===
+                                    'Escape'
+                                  ) {
+                                    event.preventDefault();
+
+                                    cancelQuantityEdit();
+                                  }
+
+                                }
+                              }
+                              className="
+                                ml-4
+                                w-12
+                                h-12
+                                rounded-full
+                                bg-slate-900
+                                text-white
+                                text-center
+                                text-lg
+                                font-black
+                                outline-none
+                                ring-4
+                                ring-slate-200
+                                dark:ring-slate-700
+                                appearance-none
+                              "
+                            />
+
+                          ) : (
+
+                            <button
+                              type="button"
+                              onClick={() =>
+                                startQuantityEdit(
+                                  index,
+                                  flower.count
+                                )
+                              }
+                              className={`ml-4 w-12 h-12 rounded-full flex items-center justify-center shrink-0 shadow-md transition-all hover:scale-110 ${
+                                darkMode
+                                  ? 'bg-slate-700 text-white'
+                                  : 'bg-slate-900 text-white'
+                              }`}
+                              title="Click to edit quantity"
+                            >
+
+                              <span className="text-xl font-black leading-none">
+                                {flower.count}
+                              </span>
+
+                            </button>
+
+                          )}
 
                         </div>
 
@@ -2270,6 +2993,27 @@ function App() {
                   }`}
                 >
 
+                  {/* EDIT */}
+
+                  <button
+                    onClick={
+                      event =>
+                        openEditProduct(
+                          product,
+                          event
+                        )
+                    }
+                    className="absolute top-3 left-3 z-20 bg-slate-900 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition"
+                    title="Edit bouquet"
+                  >
+
+                    <Pencil className="w-4 h-4" />
+
+                  </button>
+
+
+                  {/* DELETE */}
+
                   <button
                     onClick={
                       event =>
@@ -2278,7 +3022,8 @@ function App() {
                           event
                         )
                     }
-                    className="absolute top-3 left-3 z-10 bg-red-500 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition"
+                    className="absolute top-3 left-14 z-20 bg-red-500 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition"
+                    title="Delete bouquet"
                   >
 
                     <Trash2 className="w-4 h-4" />
@@ -2351,7 +3096,7 @@ function App() {
 
 
       {/* ======================================================
-          IMAGE ZOOM MODAL
+          IMAGE ZOOM
       ====================================================== */}
 
       {zoomedImage && (
@@ -2457,38 +3202,11 @@ function App() {
           darkMode={darkMode}
         >
 
-          <div className="flex justify-between items-start mb-5">
-
-            <div>
-
-              <div className="w-11 h-11 bg-slate-100 dark:bg-slate-800 rounded-2xl flex items-center justify-center mb-3">
-
-                <Pencil className="w-5 h-5" />
-
-              </div>
-
-
-              <h3 className="text-lg font-bold">
-                Edit Flower
-              </h3>
-
-
-              <p className="text-xs text-slate-400 mt-1">
-                Updates existing bouquets too.
-              </p>
-
-            </div>
-
-
-            <button
-              onClick={closeEditFlower}
-            >
-
-              <X className="w-5 h-5 text-slate-400" />
-
-            </button>
-
-          </div>
+          <ModalTitle
+            title="Edit Flower"
+            subtitle="Changes also update existing bouquets."
+            onClose={closeEditFlower}
+          />
 
 
           <form
@@ -2515,48 +3233,23 @@ function App() {
 
             {editFlowerImage && (
 
-              <div className="flex items-center gap-3 p-3 rounded-2xl bg-slate-50 dark:bg-slate-800">
-
-                <img
-                  src={editFlowerImage}
-                  alt=""
-                  className="w-16 h-16 rounded-xl object-cover"
-                />
-
-
-                <span className="font-semibold text-sm">
-                  {editFlowerName}
-                </span>
-
-              </div>
+              <ImagePreview
+                image={editFlowerImage}
+                name={editFlowerName}
+              />
 
             )}
 
 
-            <div className="flex justify-end gap-3 pt-3">
-
-              <button
-                type="button"
-                onClick={closeEditFlower}
-                className="px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700"
-              >
-                Cancel
-              </button>
-
-
-              <button
-                type="submit"
-                disabled={savingFlowerEdit}
-                className="px-5 py-2 rounded-xl bg-slate-900 text-white font-semibold"
-              >
-
-                {savingFlowerEdit
+            <ModalButtons
+              onCancel={closeEditFlower}
+              saveText={
+                savingFlowerEdit
                   ? 'Saving...'
-                  : 'Save Changes'}
-
-              </button>
-
-            </div>
+                  : 'Save Changes'
+              }
+              disabled={savingFlowerEdit}
+            />
 
           </form>
 
@@ -2566,7 +3259,415 @@ function App() {
 
 
       {/* ======================================================
-          ADD ARRANGEMENT MODAL
+          EDIT PRODUCT MODAL
+      ====================================================== */}
+
+      {editingProduct && (
+
+        <ModalShell
+          darkMode={darkMode}
+          large
+        >
+
+          <ModalTitle
+            title="Edit Bouquet"
+            subtitle="Update product details and flower composition."
+            onClose={closeEditProduct}
+          />
+
+
+          <form
+            onSubmit={handleSaveProductEdit}
+            className="space-y-5"
+          >
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+              <Field
+                label="Bouquet Name"
+                value={editProductName}
+                onChange={setEditProductName}
+                darkMode={darkMode}
+                required
+              />
+
+
+              <Field
+                label="Price"
+                value={editProductPrice}
+                onChange={setEditProductPrice}
+                darkMode={darkMode}
+                required
+              />
+
+            </div>
+
+
+            <Field
+              label="Image URL"
+              value={editProductImage}
+              onChange={setEditProductImage}
+              darkMode={darkMode}
+            />
+
+
+            {editProductImage && (
+
+              <ImagePreview
+                image={editProductImage}
+                name={editProductName}
+              />
+
+            )}
+
+
+            <div>
+
+              <div className="flex items-center justify-between mb-3">
+
+                <div>
+
+                  <h4 className="font-bold text-sm">
+                    Flower Composition
+                  </h4>
+
+                  <p className="text-xs text-slate-400 mt-1">
+                    Add, remove or change quantities.
+                  </p>
+
+                </div>
+
+
+                <span className="text-xs font-bold text-slate-400">
+                  {editProductFlowers.length} types
+                </span>
+
+              </div>
+
+
+              {/* ADD FLOWER */}
+
+              <div className="flex gap-2 mb-4">
+
+                <div
+                  ref={editProductPickerRef}
+                  className="relative flex-1"
+                >
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setIsEditProductPickerOpen(
+                        !isEditProductPickerOpen
+                      )
+                    }
+                    className={`w-full px-4 py-3 rounded-xl border flex items-center justify-between text-sm ${
+                      darkMode
+                        ? 'bg-slate-800 border-slate-700'
+                        : 'bg-slate-50 border-slate-200'
+                    }`}
+                  >
+
+                    {selectedEditProductFlower ? (
+
+                      <span>
+                        {selectedEditProductFlower.name}
+                      </span>
+
+                    ) : (
+
+                      <span className="text-slate-400">
+                        Add another flower...
+                      </span>
+
+                    )}
+
+
+                    <ChevronDown className="w-4 h-4 text-slate-400" />
+
+                  </button>
+
+
+                  {isEditProductPickerOpen && (
+
+                    <div
+                      className={`absolute z-[100] left-0 right-0 top-full mt-2 rounded-2xl border shadow-xl p-3 ${
+                        darkMode
+                          ? 'bg-slate-900 border-slate-700'
+                          : 'bg-white border-slate-200'
+                      }`}
+                    >
+
+                      <div className="flex items-center rounded-xl bg-slate-100 dark:bg-slate-800 px-3 mb-2">
+
+                        <Search className="w-4 h-4 text-slate-400" />
+
+                        <input
+                          value={editProductPickerSearch}
+                          onChange={
+                            event =>
+                              setEditProductPickerSearch(
+                                event.target.value
+                              )
+                          }
+                          placeholder="Search flowers..."
+                          className="w-full bg-transparent p-3 outline-none text-sm"
+                        />
+
+                      </div>
+
+
+                      <div className="max-h-44 overflow-auto">
+
+                        {editProductPickerFlowers.map(
+                          flower => (
+
+                            <button
+                              key={flower.id}
+                              type="button"
+                              onClick={() => {
+
+                                setSelectedEditProductFlower(
+                                  flower
+                                );
+
+                                setIsEditProductPickerOpen(
+                                  false
+                                );
+
+                              }}
+                              className="w-full flex items-center gap-3 p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-left"
+                            >
+
+                              <img
+                                src={flower.image}
+                                alt=""
+                                className="w-8 h-8 rounded-lg object-cover"
+                              />
+
+                              <span className="text-sm font-semibold">
+                                {flower.name}
+                              </span>
+
+                            </button>
+
+                          )
+                        )}
+
+                      </div>
+
+                    </div>
+
+                  )}
+
+                </div>
+
+
+                <input
+                  type="number"
+                  min="1"
+                  value={editProductFlowerCount}
+                  onChange={
+                    event =>
+                      setEditProductFlowerCount(
+                        event.target.value
+                      )
+                  }
+                  className={`w-20 px-3 rounded-xl border text-center ${
+                    darkMode
+                      ? 'bg-slate-800 border-slate-700'
+                      : 'bg-slate-50 border-slate-200'
+                  }`}
+                />
+
+
+                <button
+                  type="button"
+                  onClick={addFlowerToEditProduct}
+                  className="px-4 rounded-xl bg-slate-900 text-white font-semibold"
+                >
+                  Add
+                </button>
+
+              </div>
+
+
+              {/* EXISTING FLOWERS */}
+
+              <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
+
+                {editProductFlowers.map(
+                  (
+                    flower,
+                    index
+                  ) => (
+
+                    <div
+                      key={`${flower.name}-${index}`}
+                      className={`flex items-center gap-3 rounded-2xl border p-3 ${
+                        darkMode
+                          ? 'bg-slate-800/50 border-slate-700'
+                          : 'bg-slate-50 border-slate-200'
+                      }`}
+                    >
+
+                      <img
+                        src={getFlowerImage(flower)}
+                        alt=""
+                        className="w-12 h-12 rounded-xl object-cover bg-white shrink-0"
+                      />
+
+
+                      <div className="flex-1 min-w-0">
+
+                        <p className="text-sm font-bold truncate">
+                          {flower.name}
+                        </p>
+
+                        <p className="text-[11px] text-slate-400 mt-1">
+                          Quantity
+                        </p>
+
+                      </div>
+
+
+                      <input
+                        type="number"
+                        min="1"
+                        value={flower.count}
+                        onChange={
+                          event =>
+                            updateEditProductFlowerQuantity(
+                              index,
+                              event.target.value
+                            )
+                        }
+                        className={`w-16 h-10 rounded-xl border text-center font-bold ${
+                          darkMode
+                            ? 'bg-slate-900 border-slate-700'
+                            : 'bg-white border-slate-200'
+                        }`}
+                      />
+
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          removeFlowerFromEditProduct(
+                            index
+                          )
+                        }
+                        className="w-9 h-9 rounded-full bg-red-50 text-red-500 dark:bg-red-500/10 flex items-center justify-center"
+                      >
+
+                        <Trash2 className="w-4 h-4" />
+
+                      </button>
+
+                    </div>
+
+                  )
+                )}
+
+              </div>
+
+            </div>
+
+
+            <ModalButtons
+              onCancel={closeEditProduct}
+              saveText={
+                savingProductEdit
+                  ? 'Saving...'
+                  : 'Save Bouquet'
+              }
+              disabled={savingProductEdit}
+            />
+
+          </form>
+
+        </ModalShell>
+
+      )}
+
+
+      {/* ======================================================
+          EDIT ARRANGEMENT MODAL
+      ====================================================== */}
+
+      {editingArrangement && (
+
+        <ModalShell
+          darkMode={darkMode}
+        >
+
+          <ModalTitle
+            title="Edit Arrangement"
+            subtitle="Update its name, price or image."
+            onClose={closeEditArrangement}
+          />
+
+
+          <form
+            onSubmit={handleSaveArrangementEdit}
+            className="space-y-4"
+          >
+
+            <Field
+              label="Arrangement Name"
+              value={editArrangementName}
+              onChange={setEditArrangementName}
+              darkMode={darkMode}
+              required
+            />
+
+
+            <Field
+              label="Price"
+              value={editArrangementPrice}
+              onChange={setEditArrangementPrice}
+              darkMode={darkMode}
+              required
+            />
+
+
+            <Field
+              label="Image URL"
+              value={editArrangementImage}
+              onChange={setEditArrangementImage}
+              darkMode={darkMode}
+            />
+
+
+            {editArrangementImage && (
+
+              <ImagePreview
+                image={editArrangementImage}
+                name={editArrangementName}
+              />
+
+            )}
+
+
+            <ModalButtons
+              onCancel={closeEditArrangement}
+              saveText={
+                savingArrangementEdit
+                  ? 'Saving...'
+                  : 'Save Arrangement'
+              }
+              disabled={savingArrangementEdit}
+            />
+
+          </form>
+
+        </ModalShell>
+
+      )}
+
+
+      {/* ======================================================
+          ADD ARRANGEMENT
       ====================================================== */}
 
       {isAddingArrangement && (
@@ -2626,14 +3727,14 @@ function App() {
 
 
       {/* ======================================================
-          ADD PRODUCT MODAL
+          ADD PRODUCT
       ====================================================== */}
 
       {isAddingProduct && (
 
         <ModalShell
           darkMode={darkMode}
-          wide
+          large
         >
 
           <h3 className="text-lg font-bold mb-5">
@@ -2706,8 +3807,6 @@ function App() {
               darkMode={darkMode}
             />
 
-
-            {/* FLOWERS */}
 
             <div>
 
@@ -2898,15 +3997,15 @@ function App() {
 function ModalShell({
   children,
   darkMode,
-  wide = false,
+  large = false,
 }) {
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[80] flex items-center justify-center p-4">
 
       <div
         className={`${
-          wide
-            ? 'max-w-lg'
+          large
+            ? 'max-w-2xl'
             : 'max-w-md'
         } w-full max-h-[90vh] overflow-y-auto rounded-3xl border p-6 shadow-2xl ${
           darkMode
@@ -2918,6 +4017,50 @@ function ModalShell({
         {children}
 
       </div>
+
+    </div>
+  );
+}
+
+
+/* ============================================================
+   MODAL TITLE
+============================================================ */
+
+function ModalTitle({
+  title,
+  subtitle,
+  onClose,
+}) {
+  return (
+    <div className="flex items-start justify-between gap-4 mb-5">
+
+      <div>
+
+        <h3 className="text-lg font-bold">
+          {title}
+        </h3>
+
+        {subtitle && (
+
+          <p className="text-xs text-slate-400 mt-1">
+            {subtitle}
+          </p>
+
+        )}
+
+      </div>
+
+
+      <button
+        type="button"
+        onClick={onClose}
+        className="w-9 h-9 rounded-full flex items-center justify-center hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+      >
+
+        <X className="w-4 h-4" />
+
+      </button>
 
     </div>
   );
@@ -2965,12 +4108,48 @@ function Field({
 
 
 /* ============================================================
+   IMAGE PREVIEW
+============================================================ */
+
+function ImagePreview({
+  image,
+  name,
+}) {
+  return (
+    <div className="flex items-center gap-4 rounded-2xl bg-slate-50 dark:bg-slate-800 p-3">
+
+      <img
+        src={image}
+        alt=""
+        className="w-16 h-16 rounded-xl object-cover bg-white"
+      />
+
+
+      <div>
+
+        <p className="text-[10px] uppercase tracking-wider font-bold text-slate-400">
+          Preview
+        </p>
+
+        <p className="text-sm font-bold mt-1">
+          {name || 'Image preview'}
+        </p>
+
+      </div>
+
+    </div>
+  );
+}
+
+
+/* ============================================================
    MODAL BUTTONS
 ============================================================ */
 
 function ModalButtons({
   onCancel,
   saveText,
+  disabled = false,
 }) {
   return (
     <div className="flex justify-end gap-3 pt-4">
@@ -2978,7 +4157,8 @@ function ModalButtons({
       <button
         type="button"
         onClick={onCancel}
-        className="px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700"
+        disabled={disabled}
+        className="px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 disabled:opacity-50"
       >
         Cancel
       </button>
@@ -2986,7 +4166,8 @@ function ModalButtons({
 
       <button
         type="submit"
-        className="px-5 py-2 rounded-xl bg-slate-900 text-white font-semibold"
+        disabled={disabled}
+        className="px-5 py-2 rounded-xl bg-slate-900 text-white font-semibold disabled:opacity-50"
       >
         {saveText}
       </button>
