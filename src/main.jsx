@@ -64,7 +64,8 @@ function App() {
   const [editArrangementName, setEditArrangementName] = useState('');
   const [editArrangementPrice, setEditArrangementPrice] = useState('');
   const [editArrangementImage, setEditArrangementImage] = useState('');
-  const [savingArrangementEdit, setSavingArrangementEdit] = useState(false);
+  const [savingArrangementEdit, setSavingArrangementEdit] =
+    useState(false);
 
   const [editingQuantityIndex, setEditingQuantityIndex] = useState(null);
   const [quantityDraft, setQuantityDraft] = useState('');
@@ -72,7 +73,7 @@ function App() {
 
 
   /* ============================================================
-     EXISTING BOUQUET SEARCHABLE FLOWER PICKER
+     EXISTING BOUQUET FLOWER PICKER
   ============================================================ */
 
   const [flowerPickerOpen, setFlowerPickerOpen] = useState(false);
@@ -84,7 +85,7 @@ function App() {
 
 
   /* ============================================================
-     ADD BOUQUET SEARCHABLE FLOWER PICKER
+     ADD BOUQUET FLOWER PICKER
   ============================================================ */
 
   const [newBouquetPickerOpen, setNewBouquetPickerOpen] = useState(false);
@@ -97,15 +98,17 @@ function App() {
 
 
   /* ============================================================
-     EDIT BOUQUET SEARCHABLE FLOWER PICKER
+     EDIT BOUQUET FLOWER PICKER
   ============================================================ */
 
   const [editBouquetPickerOpen, setEditBouquetPickerOpen] = useState(false);
   const [editBouquetFlowerText, setEditBouquetFlowerText] = useState('');
+
   const [selectedEditProductFlower, setSelectedEditProductFlower] =
     useState(null);
 
-  const [editProductFlowerCount, setEditProductFlowerCount] = useState(1);
+  const [editProductFlowerCount, setEditProductFlowerCount] =
+    useState(1);
 
   const editProductPickerRef = useRef(null);
 
@@ -1480,7 +1483,7 @@ function App() {
 
 
   /* ============================================================
-     DIRECT QUANTITY EDITING
+     QUANTITY EDIT
   ============================================================ */
 
   function startQuantityEdit(
@@ -2074,7 +2077,15 @@ function App() {
                     )
                 }
                 placeholder="Search..."
-                className="w-full bg-transparent outline-none text-sm"
+                className="
+                  w-full
+                  bg-transparent
+                  outline-none
+                  text-sm
+                  !text-black
+                  placeholder:text-slate-400
+                  dark:!text-white
+                "
               />
 
             </div>
@@ -2405,7 +2416,7 @@ function App() {
 
 
               {/* ==================================================
-                  EXISTING BOUQUET — TRUE SEARCHABLE INPUT
+                  EXISTING BOUQUET SEARCH INPUT
               ================================================== */}
 
               <form
@@ -2463,9 +2474,9 @@ function App() {
                         bg-transparent
                         outline-none
                         text-sm
-                        text-black
+                        !text-black
                         placeholder:text-slate-400
-                        dark:text-white
+                        dark:!text-white
                         dark:placeholder:text-slate-400
                       "
                     />
@@ -2533,7 +2544,7 @@ function App() {
                         event.target.value
                       )
                   }
-                  className={`w-20 px-3 rounded-xl border text-slate-900 dark:text-white ${
+                  className={`w-20 px-3 rounded-xl border !text-black dark:!text-white ${
                     darkMode
                       ? 'bg-slate-800 border-slate-700'
                       : 'bg-slate-50 border-slate-200'
@@ -2713,7 +2724,7 @@ function App() {
                                     h-11
                                     rounded-full
                                     bg-slate-900
-                                    text-white
+                                    !text-white
                                     text-center
                                     text-lg
                                     font-black
@@ -3158,8 +3169,6 @@ function App() {
               </div>
 
 
-              {/* TRUE SEARCH INPUT */}
-
               <div className="flex gap-2 mb-4">
 
                 <div
@@ -3212,9 +3221,9 @@ function App() {
                         bg-transparent
                         outline-none
                         text-sm
-                        text-black
+                        !text-black
                         placeholder:text-slate-400
-                        dark:text-white
+                        dark:!text-white
                       "
                     />
 
@@ -3258,7 +3267,7 @@ function App() {
                         event.target.value
                       )
                   }
-                  className={`w-20 px-3 rounded-xl border text-center text-slate-900 dark:text-white ${
+                  className={`w-20 px-3 rounded-xl border text-center !text-black dark:!text-white ${
                     darkMode
                       ? 'bg-slate-800 border-slate-700'
                       : 'bg-slate-50 border-slate-200'
@@ -3303,7 +3312,7 @@ function App() {
 
                       <div className="flex-1 min-w-0">
 
-                        <p className="text-sm font-bold text-slate-900 dark:text-white truncate">
+                        <p className="text-sm font-bold truncate">
                           {flower.name}
                         </p>
 
@@ -3325,7 +3334,7 @@ function App() {
                               event.target.value
                             )
                         }
-                        className={`w-16 h-10 rounded-xl border text-center font-bold text-slate-900 dark:text-white ${
+                        className={`w-16 h-10 rounded-xl border text-center font-bold !text-black dark:!text-white ${
                           darkMode
                             ? 'bg-slate-900 border-slate-700'
                             : 'bg-white border-slate-200'
@@ -3554,18 +3563,24 @@ function App() {
                       event.target.value
                     )
                 }
-                className={`w-full px-4 py-3 rounded-xl border text-slate-900 dark:text-white ${
+                className={`w-full px-4 py-3 rounded-xl border !text-black dark:!text-white ${
                   darkMode
                     ? 'bg-slate-800 border-slate-700'
                     : 'bg-slate-50 border-slate-200'
                 }`}
               >
 
-                <option value="ready-bouquets">
+                <option
+                  value="ready-bouquets"
+                  className="text-black"
+                >
                   Ready Bouquets
                 </option>
 
-                <option value="arrangements">
+                <option
+                  value="arrangements"
+                  className="text-black"
+                >
                   Arrangements
                 </option>
 
@@ -3597,10 +3612,6 @@ function App() {
                 Flowers
               </label>
 
-
-              {/* =================================================
-                  ADD BOUQUET TRUE SEARCHABLE INPUT
-              ================================================= */}
 
               <div className="flex gap-2">
 
@@ -3654,9 +3665,9 @@ function App() {
                         bg-transparent
                         outline-none
                         text-sm
-                        text-black
+                        !text-black
                         placeholder:text-slate-400
-                        dark:text-white
+                        dark:!text-white
                         dark:placeholder:text-slate-400
                       "
                     />
@@ -3701,7 +3712,7 @@ function App() {
                         event.target.value
                       )
                   }
-                  className={`w-20 px-3 rounded-xl border text-slate-900 dark:text-white ${
+                  className={`w-20 px-3 rounded-xl border !text-black dark:!text-white ${
                     darkMode
                       ? 'bg-slate-800 border-slate-700'
                       : 'bg-slate-50 border-slate-200'
@@ -3719,12 +3730,6 @@ function App() {
 
               </div>
 
-
-              {/* =================================================
-                  FLOWERS ALREADY ADDED
-
-                  EXPLICIT LIGHT-MODE TEXT COLORS
-              ================================================= */}
 
               <div className="space-y-2 mt-4">
 
@@ -3887,7 +3892,7 @@ function FlowerSearchDropdown({
                   ${
                     darkMode
                       ? 'hover:bg-slate-800 text-white'
-                      : 'hover:bg-slate-100 text-slate-900'
+                      : 'hover:bg-slate-100 !text-black'
                   }
                 `}
               >
@@ -3899,7 +3904,13 @@ function FlowerSearchDropdown({
                 />
 
 
-                <span className="text-sm font-semibold">
+                <span
+                  className={
+                    darkMode
+                      ? 'text-sm font-semibold text-white'
+                      : 'text-sm font-semibold !text-black'
+                  }
+                >
                   {flower.name}
                 </span>
 
@@ -4009,6 +4020,9 @@ function ModalTitle({
 
 /* ============================================================
    FIELD
+
+   THIS IS THE MAIN FIX:
+   every standard text input is forced BLACK in light mode.
 ============================================================ */
 
 function Field({
@@ -4035,7 +4049,7 @@ function Field({
               event.target.value
             )
         }
-        className={`w-full px-4 py-3 rounded-xl border outline-none text-slate-900 dark:text-white ${
+        className={`w-full px-4 py-3 rounded-xl border outline-none !text-black placeholder:text-slate-400 dark:!text-white ${
           darkMode
             ? 'bg-slate-800 border-slate-700'
             : 'bg-slate-50 border-slate-200'
