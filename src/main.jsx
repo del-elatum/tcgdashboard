@@ -2463,7 +2463,7 @@ function App() {
                         bg-transparent
                         outline-none
                         text-sm
-                        text-slate-900
+                        text-black
                         placeholder:text-slate-400
                         dark:text-white
                         dark:placeholder:text-slate-400
@@ -3212,7 +3212,7 @@ function App() {
                         bg-transparent
                         outline-none
                         text-sm
-                        text-slate-900
+                        text-black
                         placeholder:text-slate-400
                         dark:text-white
                       "
@@ -3654,7 +3654,7 @@ function App() {
                         bg-transparent
                         outline-none
                         text-sm
-                        text-slate-900
+                        text-black
                         placeholder:text-slate-400
                         dark:text-white
                         dark:placeholder:text-slate-400
