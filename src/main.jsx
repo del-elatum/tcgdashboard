@@ -64,8 +64,7 @@ function App() {
   const [editArrangementName, setEditArrangementName] = useState('');
   const [editArrangementPrice, setEditArrangementPrice] = useState('');
   const [editArrangementImage, setEditArrangementImage] = useState('');
-  const [savingArrangementEdit, setSavingArrangementEdit] =
-    useState(false);
+  const [savingArrangementEdit, setSavingArrangementEdit] = useState(false);
 
   const [editingQuantityIndex, setEditingQuantityIndex] = useState(null);
   const [quantityDraft, setQuantityDraft] = useState('');
@@ -103,12 +102,10 @@ function App() {
 
   const [editBouquetPickerOpen, setEditBouquetPickerOpen] = useState(false);
   const [editBouquetFlowerText, setEditBouquetFlowerText] = useState('');
-
   const [selectedEditProductFlower, setSelectedEditProductFlower] =
     useState(null);
 
-  const [editProductFlowerCount, setEditProductFlowerCount] =
-    useState(1);
+  const [editProductFlowerCount, setEditProductFlowerCount] = useState(1);
 
   const editProductPickerRef = useRef(null);
 
@@ -338,6 +335,15 @@ function App() {
   /* ============================================================
      HELPERS
   ============================================================ */
+
+  function inputTextStyle() {
+    return {
+      color: darkMode
+        ? '#ffffff'
+        : '#000000',
+    };
+  }
+
 
   function getFlowerImage(flower) {
     if (
@@ -1483,7 +1489,7 @@ function App() {
 
 
   /* ============================================================
-     QUANTITY EDIT
+     DIRECT QUANTITY EDITING
   ============================================================ */
 
   function startQuantityEdit(
@@ -2070,6 +2076,7 @@ function App() {
 
               <input
                 value={searchQuery}
+                style={inputTextStyle()}
                 onChange={
                   event =>
                     setSearchQuery(
@@ -2082,9 +2089,7 @@ function App() {
                   bg-transparent
                   outline-none
                   text-sm
-                  !text-black
                   placeholder:text-slate-400
-                  dark:!text-white
                 "
               />
 
@@ -2451,6 +2456,7 @@ function App() {
                     <input
                       type="text"
                       value={flowerPickerText}
+                      style={inputTextStyle()}
                       placeholder="Select or search flower..."
                       onFocus={() =>
                         setFlowerPickerOpen(true)
@@ -2474,10 +2480,7 @@ function App() {
                         bg-transparent
                         outline-none
                         text-sm
-                        !text-black
                         placeholder:text-slate-400
-                        dark:!text-white
-                        dark:placeholder:text-slate-400
                       "
                     />
 
@@ -2538,13 +2541,14 @@ function App() {
                   type="number"
                   min="1"
                   value={recipeFlowerCount}
+                  style={inputTextStyle()}
                   onChange={
                     event =>
                       setRecipeFlowerCount(
                         event.target.value
                       )
                   }
-                  className={`w-20 px-3 rounded-xl border !text-black dark:!text-white ${
+                  className={`w-20 px-3 rounded-xl border ${
                     darkMode
                       ? 'bg-slate-800 border-slate-700'
                       : 'bg-slate-50 border-slate-200'
@@ -2686,6 +2690,9 @@ function App() {
                                   autoFocus
                                   value={quantityDraft}
                                   disabled={savingQuantity}
+                                  style={{
+                                    color: '#ffffff',
+                                  }}
                                   onChange={
                                     event =>
                                       setQuantityDraft(
@@ -2724,7 +2731,6 @@ function App() {
                                     h-11
                                     rounded-full
                                     bg-slate-900
-                                    !text-white
                                     text-center
                                     text-lg
                                     font-black
@@ -3198,6 +3204,7 @@ function App() {
                     <input
                       type="text"
                       value={editBouquetFlowerText}
+                      style={inputTextStyle()}
                       placeholder="Select or search flower..."
                       onFocus={() =>
                         setEditBouquetPickerOpen(true)
@@ -3221,9 +3228,7 @@ function App() {
                         bg-transparent
                         outline-none
                         text-sm
-                        !text-black
                         placeholder:text-slate-400
-                        dark:!text-white
                       "
                     />
 
@@ -3261,13 +3266,14 @@ function App() {
                   type="number"
                   min="1"
                   value={editProductFlowerCount}
+                  style={inputTextStyle()}
                   onChange={
                     event =>
                       setEditProductFlowerCount(
                         event.target.value
                       )
                   }
-                  className={`w-20 px-3 rounded-xl border text-center !text-black dark:!text-white ${
+                  className={`w-20 px-3 rounded-xl border text-center ${
                     darkMode
                       ? 'bg-slate-800 border-slate-700'
                       : 'bg-slate-50 border-slate-200'
@@ -3327,6 +3333,7 @@ function App() {
                         type="number"
                         min="1"
                         value={flower.count}
+                        style={inputTextStyle()}
                         onChange={
                           event =>
                             updateEditProductFlowerQuantity(
@@ -3334,7 +3341,7 @@ function App() {
                               event.target.value
                             )
                         }
-                        className={`w-16 h-10 rounded-xl border text-center font-bold !text-black dark:!text-white ${
+                        className={`w-16 h-10 rounded-xl border text-center font-bold ${
                           darkMode
                             ? 'bg-slate-900 border-slate-700'
                             : 'bg-white border-slate-200'
@@ -3557,13 +3564,14 @@ function App() {
 
               <select
                 value={newCategory}
+                style={inputTextStyle()}
                 onChange={
                   event =>
                     setNewCategory(
                       event.target.value
                     )
                 }
-                className={`w-full px-4 py-3 rounded-xl border !text-black dark:!text-white ${
+                className={`w-full px-4 py-3 rounded-xl border ${
                   darkMode
                     ? 'bg-slate-800 border-slate-700'
                     : 'bg-slate-50 border-slate-200'
@@ -3572,14 +3580,18 @@ function App() {
 
                 <option
                   value="ready-bouquets"
-                  className="text-black"
+                  style={{
+                    color: '#000000',
+                  }}
                 >
                   Ready Bouquets
                 </option>
 
                 <option
                   value="arrangements"
-                  className="text-black"
+                  style={{
+                    color: '#000000',
+                  }}
                 >
                   Arrangements
                 </option>
@@ -3642,6 +3654,7 @@ function App() {
                     <input
                       type="text"
                       value={newBouquetFlowerText}
+                      style={inputTextStyle()}
                       placeholder="Select or search flower..."
                       onFocus={() =>
                         setNewBouquetPickerOpen(true)
@@ -3665,10 +3678,7 @@ function App() {
                         bg-transparent
                         outline-none
                         text-sm
-                        !text-black
                         placeholder:text-slate-400
-                        dark:!text-white
-                        dark:placeholder:text-slate-400
                       "
                     />
 
@@ -3706,13 +3716,14 @@ function App() {
                   type="number"
                   min="1"
                   value={modalFlowerCount}
+                  style={inputTextStyle()}
                   onChange={
                     event =>
                       setModalFlowerCount(
                         event.target.value
                       )
                   }
-                  className={`w-20 px-3 rounded-xl border !text-black dark:!text-white ${
+                  className={`w-20 px-3 rounded-xl border ${
                     darkMode
                       ? 'bg-slate-800 border-slate-700'
                       : 'bg-slate-50 border-slate-200'
@@ -3846,7 +3857,7 @@ function App() {
 
 
 /* ============================================================
-   SEARCHABLE FLOWER DROPDOWN
+   FLOWER SEARCH DROPDOWN
 ============================================================ */
 
 function FlowerSearchDropdown({
@@ -3875,26 +3886,23 @@ function FlowerSearchDropdown({
                 type="button"
                 onMouseDown={
                   event => {
+
                     event.preventDefault();
 
                     onSelect(flower);
+
                   }
                 }
-                className={`
-                  w-full
-                  flex
-                  items-center
-                  gap-3
-                  p-2.5
-                  rounded-xl
-                  text-left
-                  transition
-                  ${
-                    darkMode
-                      ? 'hover:bg-slate-800 text-white'
-                      : 'hover:bg-slate-100 !text-black'
-                  }
-                `}
+                style={{
+                  color: darkMode
+                    ? '#ffffff'
+                    : '#000000',
+                }}
+                className={`w-full flex items-center gap-3 p-2.5 rounded-xl text-left transition ${
+                  darkMode
+                    ? 'hover:bg-slate-800'
+                    : 'hover:bg-slate-100'
+                }`}
               >
 
                 <img
@@ -3904,13 +3912,7 @@ function FlowerSearchDropdown({
                 />
 
 
-                <span
-                  className={
-                    darkMode
-                      ? 'text-sm font-semibold text-white'
-                      : 'text-sm font-semibold !text-black'
-                  }
-                >
+                <span className="text-sm font-semibold">
                   {flower.name}
                 </span>
 
@@ -4020,9 +4022,6 @@ function ModalTitle({
 
 /* ============================================================
    FIELD
-
-   THIS IS THE MAIN FIX:
-   every standard text input is forced BLACK in light mode.
 ============================================================ */
 
 function Field({
@@ -4043,13 +4042,18 @@ function Field({
       <input
         required={required}
         value={value}
+        style={{
+          color: darkMode
+            ? '#ffffff'
+            : '#000000',
+        }}
         onChange={
           event =>
             onChange(
               event.target.value
             )
         }
-        className={`w-full px-4 py-3 rounded-xl border outline-none !text-black placeholder:text-slate-400 dark:!text-white ${
+        className={`w-full px-4 py-3 rounded-xl border outline-none placeholder:text-slate-400 ${
           darkMode
             ? 'bg-slate-800 border-slate-700'
             : 'bg-slate-50 border-slate-200'
