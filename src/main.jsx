@@ -14,7 +14,6 @@ import {
   Plus,
   Trash2,
   X,
-  ChevronDown,
   Pencil,
 } from 'lucide-react';
 
@@ -61,53 +60,77 @@ function App() {
   const [editProductFlowers, setEditProductFlowers] = useState([]);
   const [savingProductEdit, setSavingProductEdit] = useState(false);
 
-  const [isEditProductPickerOpen, setIsEditProductPickerOpen] =
-    useState(false);
-
-  const [editProductPickerSearch, setEditProductPickerSearch] =
-    useState('');
-
-  const [selectedEditProductFlower, setSelectedEditProductFlower] =
-    useState(null);
-
-  const [editProductFlowerCount, setEditProductFlowerCount] =
-    useState(1);
-
-  const editProductPickerRef = useRef(null);
-
   const [editingArrangement, setEditingArrangement] = useState(null);
   const [editArrangementName, setEditArrangementName] = useState('');
   const [editArrangementPrice, setEditArrangementPrice] = useState('');
   const [editArrangementImage, setEditArrangementImage] = useState('');
-  const [savingArrangementEdit, setSavingArrangementEdit] =
-    useState(false);
+  const [savingArrangementEdit, setSavingArrangementEdit] = useState(false);
 
   const [editingQuantityIndex, setEditingQuantityIndex] = useState(null);
   const [quantityDraft, setQuantityDraft] = useState('');
   const [savingQuantity, setSavingQuantity] = useState(false);
 
-  const [isFlowerPickerOpen, setIsFlowerPickerOpen] = useState(false);
-  const [flowerPickerSearch, setFlowerPickerSearch] = useState('');
+
+  /* ============================================================
+     EXISTING BOUQUET SEARCHABLE FLOWER PICKER
+  ============================================================ */
+
+  const [flowerPickerOpen, setFlowerPickerOpen] = useState(false);
+  const [flowerPickerText, setFlowerPickerText] = useState('');
   const [selectedMasterFlower, setSelectedMasterFlower] = useState(null);
   const [recipeFlowerCount, setRecipeFlowerCount] = useState(1);
 
   const pickerRef = useRef(null);
 
-  const [isModalPickerOpen, setIsModalPickerOpen] = useState(false);
-  const [modalPickerSearch, setModalPickerSearch] = useState('');
+
+  /* ============================================================
+     ADD BOUQUET SEARCHABLE FLOWER PICKER
+  ============================================================ */
+
+  const [newBouquetPickerOpen, setNewBouquetPickerOpen] = useState(false);
+  const [newBouquetFlowerText, setNewBouquetFlowerText] = useState('');
   const [selectedModalFlower, setSelectedModalFlower] = useState(null);
   const [modalFlowerCount, setModalFlowerCount] = useState(1);
   const [newModalFlowersList, setNewModalFlowersList] = useState([]);
 
   const modalPickerRef = useRef(null);
 
+
+  /* ============================================================
+     EDIT BOUQUET SEARCHABLE FLOWER PICKER
+  ============================================================ */
+
+  const [editBouquetPickerOpen, setEditBouquetPickerOpen] = useState(false);
+  const [editBouquetFlowerText, setEditBouquetFlowerText] = useState('');
+  const [selectedEditProductFlower, setSelectedEditProductFlower] =
+    useState(null);
+
+  const [editProductFlowerCount, setEditProductFlowerCount] = useState(1);
+
+  const editProductPickerRef = useRef(null);
+
+
+  /* ============================================================
+     NEW PRODUCT FIELDS
+  ============================================================ */
+
   const [newName, setNewName] = useState('');
   const [newCategory, setNewCategory] = useState('ready-bouquets');
   const [newPrice, setNewPrice] = useState('');
   const [newImage, setNewImage] = useState('');
 
+
+  /* ============================================================
+     NEW FLOWER FIELDS
+  ============================================================ */
+
   const [newFlowerName, setNewFlowerName] = useState('');
   const [newFlowerImage, setNewFlowerImage] = useState('');
+
+
+  /* ============================================================
+     NEW ARRANGEMENT FIELDS
+  ============================================================ */
 
   const [newArrangementName, setNewArrangementName] = useState('');
   const [newArrangementPrice, setNewArrangementPrice] = useState('');
@@ -267,7 +290,7 @@ function App() {
 
 
   /* ============================================================
-     CLOSE DROPDOWNS
+     CLOSE SEARCH DROPDOWNS
   ============================================================ */
 
   useEffect(() => {
@@ -276,28 +299,30 @@ function App() {
         pickerRef.current &&
         !pickerRef.current.contains(event.target)
       ) {
-        setIsFlowerPickerOpen(false);
+        setFlowerPickerOpen(false);
       }
 
       if (
         modalPickerRef.current &&
         !modalPickerRef.current.contains(event.target)
       ) {
-        setIsModalPickerOpen(false);
+        setNewBouquetPickerOpen(false);
       }
 
       if (
         editProductPickerRef.current &&
         !editProductPickerRef.current.contains(event.target)
       ) {
-        setIsEditProductPickerOpen(false);
+        setEditBouquetPickerOpen(false);
       }
     }
+
 
     document.addEventListener(
       'mousedown',
       handleOutsideClick
     );
+
 
     return () =>
       document.removeEventListener(
@@ -323,6 +348,7 @@ function App() {
       return '';
     }
 
+
     const match = masterFlowers.find(
       masterFlower =>
         masterFlower.name
@@ -332,6 +358,7 @@ function App() {
           .trim()
           .toLowerCase()
     );
+
 
     return match?.image || '';
   }
@@ -352,6 +379,28 @@ function App() {
   }
 
 
+  function filterFlowersByText(text) {
+    const query = String(text || '')
+      .trim()
+      .toLowerCase();
+
+
+    if (!query) {
+      return masterFlowers;
+    }
+
+
+    return masterFlowers.filter(
+      flower =>
+        String(
+          flower.name || ''
+        )
+          .toLowerCase()
+          .includes(query)
+    );
+  }
+
+
   /* ============================================================
      ADD PRODUCT
   ============================================================ */
@@ -366,10 +415,14 @@ function App() {
       return;
     }
 
+
     const product = {
       id: `product-${Date.now()}`,
+
       name: newName.trim(),
+
       category: newCategory,
+
       price: formatPrice(newPrice),
 
       image:
@@ -409,19 +462,25 @@ function App() {
     setNewImage('');
     setNewModalFlowersList([]);
     setSelectedModalFlower(null);
+    setNewBouquetFlowerText('');
     setModalFlowerCount(1);
-    setModalPickerSearch('');
     setIsAddingProduct(false);
   }
 
+
+  /* ============================================================
+     ADD FLOWER TO NEW BOUQUET
+  ============================================================ */
 
   function handleAddModalFlower() {
     if (!selectedModalFlower) {
       return;
     }
 
+
     const item = {
       name: selectedModalFlower.name,
+
       image: selectedModalFlower.image,
 
       count:
@@ -441,8 +500,9 @@ function App() {
 
 
     setSelectedModalFlower(null);
+    setNewBouquetFlowerText('');
     setModalFlowerCount(1);
-    setModalPickerSearch('');
+    setNewBouquetPickerOpen(false);
   }
 
 
@@ -468,8 +528,10 @@ function App() {
       return;
     }
 
+
     const flower = {
       id: `flower-${Date.now()}`,
+
       name: newFlowerName.trim(),
 
       image:
@@ -519,8 +581,14 @@ function App() {
     event?.stopPropagation();
 
     setEditingFlower(flower);
-    setEditFlowerName(flower.name || '');
-    setEditFlowerImage(flower.image || '');
+
+    setEditFlowerName(
+      flower.name || ''
+    );
+
+    setEditFlowerImage(
+      flower.image || ''
+    );
   }
 
 
@@ -545,15 +613,23 @@ function App() {
       return;
     }
 
+
     setSavingFlowerEdit(true);
     setDatabaseError('');
 
-    const oldName = editingFlower.name;
+
+    const oldName =
+      editingFlower.name;
+
 
     const updatedFlower = {
       ...editingFlower,
-      name: editFlowerName.trim(),
-      image: editFlowerImage.trim(),
+
+      name:
+        editFlowerName.trim(),
+
+      image:
+        editFlowerImage.trim(),
     };
 
 
@@ -563,8 +639,11 @@ function App() {
       } = await supabase
         .from('flowers')
         .update({
-          name: updatedFlower.name,
-          image: updatedFlower.image,
+          name:
+            updatedFlower.name,
+
+          image:
+            updatedFlower.image,
         })
         .eq(
           'id',
@@ -629,8 +708,12 @@ function App() {
 
                   return {
                     ...flower,
-                    name: updatedFlower.name,
-                    image: updatedFlower.image,
+
+                    name:
+                      updatedFlower.name,
+
+                    image:
+                      updatedFlower.image,
                   };
                 }
               ),
@@ -713,7 +796,7 @@ function App() {
 
 
   /* ============================================================
-     EDIT PRODUCT
+     EDIT BOUQUET
   ============================================================ */
 
   function openEditProduct(
@@ -723,9 +806,18 @@ function App() {
     event?.stopPropagation();
 
     setEditingProduct(product);
-    setEditProductName(product.name || '');
-    setEditProductPrice(product.price || '');
-    setEditProductImage(product.image || '');
+
+    setEditProductName(
+      product.name || ''
+    );
+
+    setEditProductPrice(
+      product.price || ''
+    );
+
+    setEditProductImage(
+      product.image || ''
+    );
 
     setEditProductFlowers(
       (product.flowers || []).map(
@@ -736,9 +828,9 @@ function App() {
     );
 
     setSelectedEditProductFlower(null);
+    setEditBouquetFlowerText('');
     setEditProductFlowerCount(1);
-    setEditProductPickerSearch('');
-    setIsEditProductPickerOpen(false);
+    setEditBouquetPickerOpen(false);
   }
 
 
@@ -753,9 +845,9 @@ function App() {
     setEditProductImage('');
     setEditProductFlowers([]);
     setSelectedEditProductFlower(null);
+    setEditBouquetFlowerText('');
     setEditProductFlowerCount(1);
-    setEditProductPickerSearch('');
-    setIsEditProductPickerOpen(false);
+    setEditBouquetPickerOpen(false);
   }
 
 
@@ -764,9 +856,13 @@ function App() {
       return;
     }
 
+
     const newFlower = {
-      name: selectedEditProductFlower.name,
-      image: selectedEditProductFlower.image,
+      name:
+        selectedEditProductFlower.name,
+
+      image:
+        selectedEditProductFlower.image,
 
       count:
         parseInt(
@@ -785,9 +881,9 @@ function App() {
 
 
     setSelectedEditProductFlower(null);
+    setEditBouquetFlowerText('');
     setEditProductFlowerCount(1);
-    setEditProductPickerSearch('');
-    setIsEditProductPickerOpen(false);
+    setEditBouquetPickerOpen(false);
   }
 
 
@@ -842,16 +938,27 @@ function App() {
       return;
     }
 
+
     setSavingProductEdit(true);
     setDatabaseError('');
 
 
     const updatedProduct = {
       ...editingProduct,
-      name: editProductName.trim(),
-      price: formatPrice(editProductPrice),
-      image: editProductImage.trim(),
-      flowers: editProductFlowers,
+
+      name:
+        editProductName.trim(),
+
+      price:
+        formatPrice(
+          editProductPrice
+        ),
+
+      image:
+        editProductImage.trim(),
+
+      flowers:
+        editProductFlowers,
     };
 
 
@@ -861,10 +968,17 @@ function App() {
       } = await supabase
         .from('products')
         .update({
-          name: updatedProduct.name,
-          price: updatedProduct.price,
-          image: updatedProduct.image,
-          flowers: updatedProduct.flowers,
+          name:
+            updatedProduct.name,
+
+          price:
+            updatedProduct.price,
+
+          image:
+            updatedProduct.image,
+
+          flowers:
+            updatedProduct.flowers,
         })
         .eq(
           'id',
@@ -895,6 +1009,7 @@ function App() {
       setEditProductImage('');
       setEditProductFlowers([]);
       setSelectedEditProductFlower(null);
+      setEditBouquetFlowerText('');
     } catch (error) {
       console.error(error);
 
@@ -917,10 +1032,21 @@ function App() {
   ) {
     event?.stopPropagation();
 
-    setEditingArrangement(arrangement);
-    setEditArrangementName(arrangement.name || '');
-    setEditArrangementPrice(arrangement.price || '');
-    setEditArrangementImage(arrangement.image || '');
+    setEditingArrangement(
+      arrangement
+    );
+
+    setEditArrangementName(
+      arrangement.name || ''
+    );
+
+    setEditArrangementPrice(
+      arrangement.price || ''
+    );
+
+    setEditArrangementImage(
+      arrangement.image || ''
+    );
   }
 
 
@@ -947,15 +1073,24 @@ function App() {
       return;
     }
 
+
     setSavingArrangementEdit(true);
     setDatabaseError('');
 
 
     const updatedArrangement = {
       ...editingArrangement,
-      name: editArrangementName.trim(),
-      price: formatPrice(editArrangementPrice),
-      image: editArrangementImage.trim(),
+
+      name:
+        editArrangementName.trim(),
+
+      price:
+        formatPrice(
+          editArrangementPrice
+        ),
+
+      image:
+        editArrangementImage.trim(),
     };
 
 
@@ -965,9 +1100,14 @@ function App() {
       } = await supabase
         .from('arrangements')
         .update({
-          name: updatedArrangement.name,
-          price: updatedArrangement.price,
-          image: updatedArrangement.image,
+          name:
+            updatedArrangement.name,
+
+          price:
+            updatedArrangement.price,
+
+          image:
+            updatedArrangement.image,
         })
         .eq(
           'id',
@@ -1018,6 +1158,7 @@ function App() {
   ) {
     event.stopPropagation();
 
+
     if (
       !window.confirm(
         'Delete this flower?'
@@ -1057,6 +1198,7 @@ function App() {
   ) {
     event.stopPropagation();
 
+
     if (
       !window.confirm(
         'Delete this arrangement?'
@@ -1095,6 +1237,7 @@ function App() {
     event
   ) {
     event.stopPropagation();
+
 
     if (
       !window.confirm(
@@ -1142,6 +1285,7 @@ function App() {
 
   async function handleAddArrangement(event) {
     event.preventDefault();
+
 
     if (
       !newArrangementName.trim() ||
@@ -1198,11 +1342,12 @@ function App() {
 
 
   /* ============================================================
-     BOUQUET FLOWERS
+     ADD FLOWER TO EXISTING BOUQUET
   ============================================================ */
 
   async function addFlowerToProduct(event) {
     event.preventDefault();
+
 
     if (
       !selectedProduct ||
@@ -1273,8 +1418,9 @@ function App() {
 
 
     setSelectedMasterFlower(null);
+    setFlowerPickerText('');
     setRecipeFlowerCount(1);
-    setFlowerPickerSearch('');
+    setFlowerPickerOpen(false);
   }
 
 
@@ -1334,7 +1480,7 @@ function App() {
 
 
   /* ============================================================
-     DIRECT QUANTITY EDIT
+     DIRECT QUANTITY EDITING
   ============================================================ */
 
   function startQuantityEdit(
@@ -1458,8 +1604,7 @@ function App() {
       product => {
         const matchesTab =
           activeTab === 'all' ||
-          product.category ===
-            activeTab;
+          product.category === activeTab;
 
 
         const matchesSearch =
@@ -1493,50 +1638,28 @@ function App() {
     arrangements.filter(
       arrangement =>
         (
-          arrangement.name ||
-          ''
+          arrangement.name || ''
         )
           .toLowerCase()
           .includes(search)
     );
 
 
-  const pickerFlowers =
-    masterFlowers.filter(
-      flower =>
-        (
-          flower.name || ''
-        )
-          .toLowerCase()
-          .includes(
-            flowerPickerSearch.toLowerCase()
-          )
+  const existingBouquetSearchResults =
+    filterFlowersByText(
+      flowerPickerText
     );
 
 
-  const modalFlowers =
-    masterFlowers.filter(
-      flower =>
-        (
-          flower.name || ''
-        )
-          .toLowerCase()
-          .includes(
-            modalPickerSearch.toLowerCase()
-          )
+  const newBouquetSearchResults =
+    filterFlowersByText(
+      newBouquetFlowerText
     );
 
 
-  const editProductPickerFlowers =
-    masterFlowers.filter(
-      flower =>
-        (
-          flower.name || ''
-        )
-          .toLowerCase()
-          .includes(
-            editProductPickerSearch.toLowerCase()
-          )
+  const editBouquetSearchResults =
+    filterFlowersByText(
+      editBouquetFlowerText
     );
 
 
@@ -1667,13 +1790,9 @@ function App() {
                   dark:hover:bg-slate-700
                   transition-all
                 "
-                title="Collapse Sidebar"
               >
 
-                <PanelLeftClose
-                  className="w-5 h-5"
-                  strokeWidth={2}
-                />
+                <PanelLeftClose className="w-5 h-5" />
 
               </button>
 
@@ -1702,20 +1821,13 @@ function App() {
                   border-slate-200
                   text-slate-700
                   shadow-sm
-                  hover:bg-slate-200
                   dark:bg-slate-800
                   dark:border-slate-700
-                  dark:text-slate-100
-                  dark:hover:bg-slate-700
-                  transition-all
+                  dark:text-white
                 "
-                title="Expand Sidebar"
               >
 
-                <PanelLeftOpen
-                  className="w-5 h-5"
-                  strokeWidth={2}
-                />
+                <PanelLeftOpen className="w-5 h-5" />
 
               </button>
 
@@ -1753,13 +1865,10 @@ function App() {
             ].map(
               tab => {
 
-                const Icon =
-                  tab.icon;
-
+                const Icon = tab.icon;
 
                 const active =
-                  activeTab ===
-                    tab.id &&
+                  activeTab === tab.id &&
                   !selectedProduct;
 
 
@@ -2210,7 +2319,7 @@ function App() {
 
 
           /* ====================================================
-             PRODUCT DETAIL
+             BOUQUET DETAIL
           ==================================================== */
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -2289,14 +2398,14 @@ function App() {
                 </h3>
 
                 <p className="text-xs text-slate-400 mt-1">
-                  Click a quantity number to edit it directly
+                  Type directly in the flower field to search
                 </p>
 
               </div>
 
 
               {/* ==================================================
-                  EXISTING BOUQUET FLOWER PICKER
+                  EXISTING BOUQUET — TRUE SEARCHABLE INPUT
               ================================================== */}
 
               <form
@@ -2309,129 +2418,105 @@ function App() {
                   className="relative flex-1"
                 >
 
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setIsFlowerPickerOpen(
-                        !isFlowerPickerOpen
-                      )
-                    }
-                    className={`w-full flex items-center justify-between px-4 py-3 rounded-xl border text-sm ${
+                  <div
+                    className={`flex items-center rounded-xl border px-4 ${
                       darkMode
                         ? 'bg-slate-800 border-slate-700'
                         : 'bg-slate-50 border-slate-200'
                     }`}
                   >
 
-                    {selectedMasterFlower ? (
+                    {selectedMasterFlower && (
 
-                      <div className="flex items-center gap-3">
-
-                        <img
-                          src={selectedMasterFlower.image}
-                          alt=""
-                          className="w-7 h-7 rounded-lg object-cover"
-                        />
-
-                        <span>
-                          {selectedMasterFlower.name}
-                        </span>
-
-                      </div>
-
-                    ) : (
-
-                      <span className="text-slate-400">
-                        Select a flower from database...
-                      </span>
+                      <img
+                        src={selectedMasterFlower.image}
+                        alt=""
+                        className="w-7 h-7 rounded-lg object-cover shrink-0 mr-3"
+                      />
 
                     )}
 
 
-                    <ChevronDown className="w-4 h-4" />
+                    <input
+                      type="text"
+                      value={flowerPickerText}
+                      placeholder="Select or search flower..."
+                      onFocus={() =>
+                        setFlowerPickerOpen(true)
+                      }
+                      onChange={
+                        event => {
 
-                  </button>
+                          setFlowerPickerText(
+                            event.target.value
+                          );
 
+                          setSelectedMasterFlower(null);
 
-                  {isFlowerPickerOpen && (
+                          setFlowerPickerOpen(true);
 
-                    <div
-                      className={`absolute top-full mt-2 left-0 right-0 z-40 rounded-2xl border p-3 shadow-2xl ${
-                        darkMode
-                          ? 'bg-slate-900 border-slate-700'
-                          : 'bg-white border-slate-200'
-                      }`}
-                    >
-
-                      {/* SEARCH — ALWAYS DARK WITH WHITE TEXT */}
-
-                      <div className="flex items-center bg-slate-800 rounded-xl px-3 mb-3">
-
-                        <Search className="w-4 h-4 text-slate-300 shrink-0" />
-
-                        <input
-                          value={flowerPickerSearch}
-                          onChange={
-                            event =>
-                              setFlowerPickerSearch(
-                                event.target.value
-                              )
-                          }
-                          placeholder="Search flowers..."
-                          className="
-                            w-full
-                            bg-transparent
-                            p-3
-                            outline-none
-                            text-sm
-                            text-white
-                            placeholder:text-slate-300
-                          "
-                        />
-
-                      </div>
+                        }
+                      }
+                      className="
+                        w-full
+                        py-3
+                        bg-transparent
+                        outline-none
+                        text-sm
+                        text-slate-900
+                        placeholder:text-slate-400
+                        dark:text-white
+                        dark:placeholder:text-slate-400
+                      "
+                    />
 
 
-                      <div className="max-h-56 overflow-auto">
+                    {flowerPickerText && (
 
-                        {pickerFlowers.map(
-                          flower => (
+                      <button
+                        type="button"
+                        onClick={() => {
 
-                            <button
-                              type="button"
-                              key={flower.id}
-                              onClick={() => {
+                          setFlowerPickerText('');
 
-                                setSelectedMasterFlower(
-                                  flower
-                                );
+                          setSelectedMasterFlower(null);
 
-                                setIsFlowerPickerOpen(
-                                  false
-                                );
+                          setFlowerPickerOpen(true);
 
-                              }}
-                              className="w-full flex items-center gap-3 p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-left"
-                            >
+                        }}
+                        className="text-slate-400 ml-2"
+                      >
 
-                              <img
-                                src={flower.image}
-                                alt=""
-                                className="w-9 h-9 rounded-lg object-cover"
-                              />
+                        <X className="w-4 h-4" />
 
-                              <span className="text-sm font-semibold">
-                                {flower.name}
-                              </span>
+                      </button>
 
-                            </button>
+                    )}
 
-                          )
-                        )}
+                  </div>
 
-                      </div>
 
-                    </div>
+                  {flowerPickerOpen && (
+
+                    <FlowerSearchDropdown
+                      flowers={existingBouquetSearchResults}
+                      darkMode={darkMode}
+                      onSelect={
+                        flower => {
+
+                          setSelectedMasterFlower(
+                            flower
+                          );
+
+                          setFlowerPickerText(
+                            flower.name
+                          );
+
+                          setFlowerPickerOpen(false);
+
+                        }
+                      }
+                    />
 
                   )}
 
@@ -2448,7 +2533,7 @@ function App() {
                         event.target.value
                       )
                   }
-                  className={`w-20 px-3 rounded-xl border ${
+                  className={`w-20 px-3 rounded-xl border text-slate-900 dark:text-white ${
                     darkMode
                       ? 'bg-slate-800 border-slate-700'
                       : 'bg-slate-50 border-slate-200'
@@ -2492,8 +2577,7 @@ function App() {
 
 
                     const editingThisQuantity =
-                      editingQuantityIndex ===
-                      index;
+                      editingQuantityIndex === index;
 
 
                     return (
@@ -2524,8 +2608,6 @@ function App() {
 
                         <div className="flex items-center gap-5 w-full pr-8">
 
-
-                          {/* IMAGE */}
 
                           <div
                             onClick={() =>
@@ -2567,16 +2649,8 @@ function App() {
                           </div>
 
 
-                          {/* =================================================
-                              INFO AREA
-
-                              Quantity has its own stable position ABOVE name.
-                          ================================================= */}
-
                           <div className="flex-1 min-w-0 flex flex-col justify-center">
 
-
-                            {/* QUANTITY */}
 
                             <div className="mb-3">
 
@@ -2616,8 +2690,7 @@ function App() {
                                     event => {
 
                                       if (
-                                        event.key ===
-                                        'Enter'
+                                        event.key === 'Enter'
                                       ) {
                                         event.preventDefault();
 
@@ -2626,8 +2699,7 @@ function App() {
 
 
                                       if (
-                                        event.key ===
-                                        'Escape'
+                                        event.key === 'Escape'
                                       ) {
                                         event.preventDefault();
 
@@ -2687,8 +2759,6 @@ function App() {
 
                             </div>
 
-
-                            {/* NAME */}
 
                             <h4 className="
                               font-bold
@@ -3002,7 +3072,7 @@ function App() {
 
 
       {/* ======================================================
-          EDIT PRODUCT
+          EDIT BOUQUET
       ====================================================== */}
 
       {editingProduct && (
@@ -3075,7 +3145,7 @@ function App() {
                   </h4>
 
                   <p className="text-xs text-slate-400 mt-1">
-                    Add, remove or change quantities.
+                    Type directly below to search flowers.
                   </p>
 
                 </div>
@@ -3088,6 +3158,8 @@ function App() {
               </div>
 
 
+              {/* TRUE SEARCH INPUT */}
+
               <div className="flex gap-2 mb-4">
 
                 <div
@@ -3095,119 +3167,81 @@ function App() {
                   className="relative flex-1"
                 >
 
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setIsEditProductPickerOpen(
-                        !isEditProductPickerOpen
-                      )
-                    }
-                    className={`w-full px-4 py-3 rounded-xl border flex items-center justify-between text-sm ${
+                  <div
+                    className={`flex items-center rounded-xl border px-4 ${
                       darkMode
                         ? 'bg-slate-800 border-slate-700'
                         : 'bg-slate-50 border-slate-200'
                     }`}
                   >
 
-                    {selectedEditProductFlower ? (
+                    {selectedEditProductFlower && (
 
-                      <span>
-                        {selectedEditProductFlower.name}
-                      </span>
-
-                    ) : (
-
-                      <span className="text-slate-400">
-                        Add another flower...
-                      </span>
+                      <img
+                        src={selectedEditProductFlower.image}
+                        alt=""
+                        className="w-7 h-7 rounded-lg object-cover mr-3 shrink-0"
+                      />
 
                     )}
 
 
-                    <ChevronDown className="w-4 h-4 text-slate-400" />
+                    <input
+                      type="text"
+                      value={editBouquetFlowerText}
+                      placeholder="Select or search flower..."
+                      onFocus={() =>
+                        setEditBouquetPickerOpen(true)
+                      }
+                      onChange={
+                        event => {
 
-                  </button>
+                          setEditBouquetFlowerText(
+                            event.target.value
+                          );
 
+                          setSelectedEditProductFlower(null);
 
-                  {isEditProductPickerOpen && (
+                          setEditBouquetPickerOpen(true);
 
-                    <div
-                      className={`absolute z-[100] left-0 right-0 top-full mt-2 rounded-2xl border shadow-xl p-3 ${
-                        darkMode
-                          ? 'bg-slate-900 border-slate-700'
-                          : 'bg-white border-slate-200'
-                      }`}
-                    >
+                        }
+                      }
+                      className="
+                        w-full
+                        py-3
+                        bg-transparent
+                        outline-none
+                        text-sm
+                        text-slate-900
+                        placeholder:text-slate-400
+                        dark:text-white
+                      "
+                    />
 
-                      {/* ALWAYS DARK SEARCH */}
-
-                      <div className="flex items-center bg-slate-800 rounded-xl px-3 mb-2">
-
-                        <Search className="w-4 h-4 text-slate-300" />
-
-                        <input
-                          value={editProductPickerSearch}
-                          onChange={
-                            event =>
-                              setEditProductPickerSearch(
-                                event.target.value
-                              )
-                          }
-                          placeholder="Search flowers..."
-                          className="
-                            w-full
-                            bg-transparent
-                            p-3
-                            outline-none
-                            text-sm
-                            text-white
-                            placeholder:text-slate-300
-                          "
-                        />
-
-                      </div>
+                  </div>
 
 
-                      <div className="max-h-44 overflow-auto">
+                  {editBouquetPickerOpen && (
 
-                        {editProductPickerFlowers.map(
-                          flower => (
+                    <FlowerSearchDropdown
+                      flowers={editBouquetSearchResults}
+                      darkMode={darkMode}
+                      onSelect={
+                        flower => {
 
-                            <button
-                              key={flower.id}
-                              type="button"
-                              onClick={() => {
+                          setSelectedEditProductFlower(
+                            flower
+                          );
 
-                                setSelectedEditProductFlower(
-                                  flower
-                                );
+                          setEditBouquetFlowerText(
+                            flower.name
+                          );
 
-                                setIsEditProductPickerOpen(
-                                  false
-                                );
+                          setEditBouquetPickerOpen(false);
 
-                              }}
-                              className="w-full flex items-center gap-3 p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-left"
-                            >
-
-                              <img
-                                src={flower.image}
-                                alt=""
-                                className="w-8 h-8 rounded-lg object-cover"
-                              />
-
-                              <span className="text-sm font-semibold">
-                                {flower.name}
-                              </span>
-
-                            </button>
-
-                          )
-                        )}
-
-                      </div>
-
-                    </div>
+                        }
+                      }
+                    />
 
                   )}
 
@@ -3224,7 +3258,7 @@ function App() {
                         event.target.value
                       )
                   }
-                  className={`w-20 px-3 rounded-xl border text-center ${
+                  className={`w-20 px-3 rounded-xl border text-center text-slate-900 dark:text-white ${
                     darkMode
                       ? 'bg-slate-800 border-slate-700'
                       : 'bg-slate-50 border-slate-200'
@@ -3269,7 +3303,7 @@ function App() {
 
                       <div className="flex-1 min-w-0">
 
-                        <p className="text-sm font-bold truncate">
+                        <p className="text-sm font-bold text-slate-900 dark:text-white truncate">
                           {flower.name}
                         </p>
 
@@ -3291,7 +3325,7 @@ function App() {
                               event.target.value
                             )
                         }
-                        className={`w-16 h-10 rounded-xl border text-center font-bold ${
+                        className={`w-16 h-10 rounded-xl border text-center font-bold text-slate-900 dark:text-white ${
                           darkMode
                             ? 'bg-slate-900 border-slate-700'
                             : 'bg-white border-slate-200'
@@ -3476,7 +3510,7 @@ function App() {
 
 
       {/* ======================================================
-          ADD PRODUCT
+          ADD BOUQUET
       ====================================================== */}
 
       {isAddingProduct && (
@@ -3520,7 +3554,7 @@ function App() {
                       event.target.value
                     )
                 }
-                className={`w-full px-4 py-3 rounded-xl border ${
+                className={`w-full px-4 py-3 rounded-xl border text-slate-900 dark:text-white ${
                   darkMode
                     ? 'bg-slate-800 border-slate-700'
                     : 'bg-slate-50 border-slate-200'
@@ -3564,6 +3598,10 @@ function App() {
               </label>
 
 
+              {/* =================================================
+                  ADD BOUQUET TRUE SEARCHABLE INPUT
+              ================================================= */}
+
               <div className="flex gap-2">
 
                 <div
@@ -3571,110 +3609,82 @@ function App() {
                   className="relative flex-1"
                 >
 
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setIsModalPickerOpen(
-                        !isModalPickerOpen
-                      )
-                    }
-                    className={`w-full px-4 py-3 rounded-xl border text-left ${
+                  <div
+                    className={`flex items-center rounded-xl border px-4 ${
                       darkMode
                         ? 'bg-slate-800 border-slate-700'
                         : 'bg-slate-50 border-slate-200'
                     }`}
                   >
 
-                    {selectedModalFlower
-                      ? selectedModalFlower.name
-                      : 'Select flower...'}
+                    {selectedModalFlower && (
 
-                  </button>
+                      <img
+                        src={selectedModalFlower.image}
+                        alt=""
+                        className="w-7 h-7 rounded-lg object-cover mr-3 shrink-0"
+                      />
 
-
-                  {isModalPickerOpen && (
-
-                    <div
-                      className={`absolute top-full mt-2 left-0 right-0 z-50 p-3 rounded-2xl border shadow-xl ${
-                        darkMode
-                          ? 'bg-slate-900 border-slate-700'
-                          : 'bg-white border-slate-200'
-                      }`}
-                    >
-
-                      {/* ALWAYS DARK SEARCH */}
-
-                      <div className="flex items-center bg-slate-800 rounded-xl px-3 mb-2">
-
-                        <Search className="w-4 h-4 text-slate-300" />
-
-                        <input
-                          value={modalPickerSearch}
-                          onChange={
-                            event =>
-                              setModalPickerSearch(
-                                event.target.value
-                              )
-                          }
-                          placeholder="Search flowers..."
-                          className="
-                            w-full
-                            bg-transparent
-                            p-3
-                            outline-none
-                            text-sm
-                            text-white
-                            placeholder:text-slate-300
-                          "
-                        />
-
-                      </div>
+                    )}
 
 
-                      <div className="max-h-44 overflow-auto">
+                    <input
+                      type="text"
+                      value={newBouquetFlowerText}
+                      placeholder="Select or search flower..."
+                      onFocus={() =>
+                        setNewBouquetPickerOpen(true)
+                      }
+                      onChange={
+                        event => {
 
-                        {modalFlowers.map(
-                          flower => (
+                          setNewBouquetFlowerText(
+                            event.target.value
+                          );
 
-                            <button
-                              type="button"
-                              key={flower.id}
-                              onClick={() => {
+                          setSelectedModalFlower(null);
 
-                                setSelectedModalFlower(
-                                  flower
-                                );
+                          setNewBouquetPickerOpen(true);
 
-                                setIsModalPickerOpen(
-                                  false
-                                );
+                        }
+                      }
+                      className="
+                        w-full
+                        py-3
+                        bg-transparent
+                        outline-none
+                        text-sm
+                        text-slate-900
+                        placeholder:text-slate-400
+                        dark:text-white
+                        dark:placeholder:text-slate-400
+                      "
+                    />
 
-                              }}
-                              className="w-full text-left p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800"
-                            >
+                  </div>
 
-                              <div className="flex items-center gap-3">
 
-                                <img
-                                  src={flower.image}
-                                  alt=""
-                                  className="w-8 h-8 rounded-lg object-cover"
-                                />
+                  {newBouquetPickerOpen && (
 
-                                <span className="font-semibold text-sm">
-                                  {flower.name}
-                                </span>
+                    <FlowerSearchDropdown
+                      flowers={newBouquetSearchResults}
+                      darkMode={darkMode}
+                      onSelect={
+                        flower => {
 
-                              </div>
+                          setSelectedModalFlower(
+                            flower
+                          );
 
-                            </button>
+                          setNewBouquetFlowerText(
+                            flower.name
+                          );
 
-                          )
-                        )}
+                          setNewBouquetPickerOpen(false);
 
-                      </div>
-
-                    </div>
+                        }
+                      }
+                    />
 
                   )}
 
@@ -3691,7 +3701,7 @@ function App() {
                         event.target.value
                       )
                   }
-                  className={`w-20 px-3 rounded-xl border ${
+                  className={`w-20 px-3 rounded-xl border text-slate-900 dark:text-white ${
                     darkMode
                       ? 'bg-slate-800 border-slate-700'
                       : 'bg-slate-50 border-slate-200'
@@ -3702,7 +3712,7 @@ function App() {
                 <button
                   type="button"
                   onClick={handleAddModalFlower}
-                  className="bg-slate-900 text-white rounded-xl px-4"
+                  className="bg-slate-900 text-white rounded-xl px-4 font-semibold"
                 >
                   Add
                 </button>
@@ -3710,7 +3720,13 @@ function App() {
               </div>
 
 
-              <div className="space-y-2 mt-3">
+              {/* =================================================
+                  FLOWERS ALREADY ADDED
+
+                  EXPLICIT LIGHT-MODE TEXT COLORS
+              ================================================= */}
+
+              <div className="space-y-2 mt-4">
 
                 {newModalFlowersList.map(
                   (
@@ -3719,13 +3735,58 @@ function App() {
                   ) => (
 
                     <div
-                      key={index}
-                      className="flex items-center justify-between bg-slate-100 dark:bg-slate-800 p-3 rounded-xl"
+                      key={`${flower.name}-${index}`}
+                      className={`
+                        flex
+                        items-center
+                        justify-between
+                        gap-3
+                        p-3
+                        rounded-xl
+                        border
+                        ${
+                          darkMode
+                            ? 'bg-slate-800 border-slate-700'
+                            : 'bg-slate-50 border-slate-200'
+                        }
+                      `}
                     >
 
-                      <span className="text-sm font-semibold">
-                        {flower.name} × {flower.count}
-                      </span>
+                      <div className="flex items-center gap-3 min-w-0">
+
+                        <img
+                          src={getFlowerImage(flower)}
+                          alt=""
+                          className="w-10 h-10 rounded-lg object-cover bg-white shrink-0"
+                        />
+
+
+                        <div className="min-w-0">
+
+                          <p className="
+                            text-sm
+                            font-bold
+                            text-slate-900
+                            dark:text-white
+                            truncate
+                          ">
+                            {flower.name}
+                          </p>
+
+
+                          <p className="
+                            text-xs
+                            font-semibold
+                            text-slate-500
+                            dark:text-slate-300
+                            mt-0.5
+                          ">
+                            Quantity: {flower.count}
+                          </p>
+
+                        </div>
+
+                      </div>
 
 
                       <button
@@ -3733,6 +3794,18 @@ function App() {
                         onClick={() =>
                           removeModalFlower(index)
                         }
+                        className="
+                          w-8
+                          h-8
+                          shrink-0
+                          rounded-full
+                          flex
+                          items-center
+                          justify-center
+                          text-red-500
+                          bg-red-50
+                          dark:bg-red-500/10
+                        "
                       >
 
                         <X className="w-4 h-4" />
@@ -3761,6 +3834,95 @@ function App() {
         </ModalShell>
 
       )}
+
+    </div>
+  );
+}
+
+
+/* ============================================================
+   SEARCHABLE FLOWER DROPDOWN
+============================================================ */
+
+function FlowerSearchDropdown({
+  flowers,
+  darkMode,
+  onSelect,
+}) {
+  return (
+    <div
+      className={`absolute left-0 right-0 top-full mt-2 z-[120] rounded-2xl border shadow-2xl overflow-hidden ${
+        darkMode
+          ? 'bg-slate-900 border-slate-700'
+          : 'bg-white border-slate-200'
+      }`}
+    >
+
+      <div className="max-h-64 overflow-y-auto p-2">
+
+        {flowers.length > 0 ? (
+
+          flowers.map(
+            flower => (
+
+              <button
+                key={flower.id}
+                type="button"
+                onMouseDown={
+                  event => {
+                    event.preventDefault();
+
+                    onSelect(flower);
+                  }
+                }
+                className={`
+                  w-full
+                  flex
+                  items-center
+                  gap-3
+                  p-2.5
+                  rounded-xl
+                  text-left
+                  transition
+                  ${
+                    darkMode
+                      ? 'hover:bg-slate-800 text-white'
+                      : 'hover:bg-slate-100 text-slate-900'
+                  }
+                `}
+              >
+
+                <img
+                  src={flower.image}
+                  alt=""
+                  className="w-10 h-10 rounded-lg object-cover bg-slate-100 shrink-0"
+                />
+
+
+                <span className="text-sm font-semibold">
+                  {flower.name}
+                </span>
+
+              </button>
+
+            )
+          )
+
+        ) : (
+
+          <div className="py-8 px-4 text-center">
+
+            <Search className="w-5 h-5 mx-auto text-slate-300 mb-2" />
+
+            <p className="text-sm text-slate-400">
+              No flowers found
+            </p>
+
+          </div>
+
+        )}
+
+      </div>
 
     </div>
   );
@@ -3818,6 +3980,7 @@ function ModalTitle({
           {title}
         </h3>
 
+
         {subtitle && (
 
           <p className="text-xs text-slate-400 mt-1">
@@ -3872,7 +4035,7 @@ function Field({
               event.target.value
             )
         }
-        className={`w-full px-4 py-3 rounded-xl border outline-none ${
+        className={`w-full px-4 py-3 rounded-xl border outline-none text-slate-900 dark:text-white ${
           darkMode
             ? 'bg-slate-800 border-slate-700'
             : 'bg-slate-50 border-slate-200'
@@ -3908,7 +4071,7 @@ function ImagePreview({
           Preview
         </p>
 
-        <p className="text-sm font-bold mt-1">
+        <p className="text-sm font-bold text-slate-900 dark:text-white mt-1">
           {name || 'Image preview'}
         </p>
 
@@ -3935,7 +4098,17 @@ function ModalButtons({
         type="button"
         onClick={onCancel}
         disabled={disabled}
-        className="px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 disabled:opacity-50"
+        className="
+          px-4
+          py-2
+          rounded-xl
+          border
+          border-slate-300
+          text-slate-700
+          dark:text-slate-200
+          dark:border-slate-700
+          disabled:opacity-50
+        "
       >
         Cancel
       </button>
